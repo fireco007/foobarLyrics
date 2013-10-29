@@ -6,14 +6,37 @@ string LyricsPlayer::m_info;
 
 LyricsPlayer::LyricsPlayer(void) : m_cbFun(NULL)
 {
-    m_timerQueue = CreateTimerQueue();
 }
 
 LyricsPlayer::~LyricsPlayer(void)
 {
-    if (m_timerQueue != INVALID_HANDLE_VALUE) {
-        CloseHandle(m_timerQueue);
-    } 
+}
+
+void LyricsPlayer::setLrcDirectory(const string &strDir)
+{
+    m_lrcDir = strDir;
+}
+
+bool LyricsPlayer::setPlayingSong(const char *strSongName, const char *strAlbum, const char *strArtist)
+{
+    m_title = strSongName;
+    m_artist = strArtist;
+    m_album = strAlbum;
+
+    //清空歌词信息
+    m_lycVec.clear();
+    m_info.clear();
+
+    //加载歌词文件
+    if (!loadLrcFile()) {
+        string strErr = "没有找到歌词";
+        callClientCb(strErr);
+
+        return false;
+    }
+    
+    //开始播放歌词
+    return startDisplayLrc();
 }
 
 void LyricsPlayer::setLrcCB(LYC_CALLBACK cb)
@@ -160,4 +183,14 @@ bool LyricsPlayer::getNextLrcLine(pair<unsigned int, string> &lrcObj)
 void LyricsPlayer::callClientCb(const string &strLrc)
 {
     m_cbFun(strLrc);
+}
+
+bool LyricsPlayer::loadLrcFile()
+{
+    //歌词文件的命名规则和Lyrics show panel相同，即 : 艺术家 - 歌曲名称.lrc
+    string lrcName = m_lrcDir + m_artist + " - " + m_title + ".lrc";
+    
+    //todo ： 判读文件是否存在，如不存在需要搜索网络并下载
+    
+    return parseLrc(lrcName);
 }

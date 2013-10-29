@@ -67,14 +67,21 @@ public:
     /// \see 无  
     bool isLrcCBValid();
 
-    bool setCurrentSong(const string &strSongName, const string &strAlbum, const string &strSinger);
+    /// \brief 设置当前播放歌曲
+    ///
+    /// \param strSongName   歌曲名称
+    /// \param strAlbum      专辑
+    /// \param strArtist     艺术家
+    /// \return       void  
+    /// \see 无
+    bool setPlayingSong(const char *strSongName, const char *strAlbum, const char *strArtist);
 
     /// \brief 设置当前歌曲名称
     ///
     /// \param strSongName   歌曲名称
     /// \return       void  
     /// \see 无
-    bool setCurrentSong(const string &strSongName);
+    bool setPlayingSong(const string &strSongName);
 
     /// \brief 解析歌词文件
     ///
@@ -99,15 +106,30 @@ private:
     /// \see 无
     bool getNextLrcLine(pair<unsigned int, string> &lrcObj);
 
+    /// \brief    歌词定时显示线程函数
+    ///
+    /// \param    lpParameter 线程函数参数
+    /// \return   DWORD       线程退出状态  
+    /// \see 无
     static DWORD WINAPI delayFun(_In_  LPVOID lpParameter);
 
+    /// \brief 加载歌词文件
+    ///
+    /// \param
+    /// \return   bool   加载歌词是否成功  
+    /// \see 无
+    bool loadLrcFile();
+
 private:
-    string m_strDir; ///< 歌词文件目录
+    string m_lrcDir; ///< 歌词文件目录
     vector<pair<unsigned int, string>> m_lycVec; ///< 歌词容器(以行为单位)pair<timestamp, lyrics>
-    HANDLE m_timerQueue; ///< 定时器队列
     static string m_info;       ///< 歌词信息(曲目、歌手、专辑、作者)
     LYC_CALLBACK m_cbFun;  ///< 回调函数，用于写回歌词
     vector<pair<unsigned int, string>>::size_type m_curLyc; ///< 当前歌词行数
+
+    string m_title; ///< 歌曲名称
+    string m_artist; ///< 歌手(艺术家)
+    string m_album; ///< 专辑
 };
 
 #endif//__LYRICS_PLAYER_H__

@@ -182,10 +182,12 @@ BOOL CLyricsWindow::ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LP
 
             initializeGL(rect.right, rect.bottom); 
 
-            string strFile = "D:\\MyVCProject\\LyricsTool\\µ¾Ïã.lrc";
-            m_lrcPlayer.parseLrc(strFile);
+            //string strFile = "D:\\MyVCProject\\LyricsTool\\µ¾Ïã.lrc";
+            //m_lrcPlayer.parseLrc(strFile);
+            string strDir = "C:\\Users\\fireco007\\AppData\\Roaming\\foobar2000\\lyrics\\";
+            m_lrcPlayer.setLrcDirectory(strDir);
             m_lrcPlayer.setLrcCB(displayLrcCallback);
-            m_lrcPlayer.startDisplayLrc();
+            //m_lrcPlayer.startDisplayLrc();
 			return TRUE;
 		}
 
@@ -531,10 +533,24 @@ void CLyricsWindow::on_playback_new_track(metadb_handle_ptr p_track) {
 	set_selection(pfc::list_single_ref_t<metadb_handle_ptr>(p_track));
 
     //add by excalibur to get the playing song information
-    pfc::string8 fileInfo;
+    pfc::string8 title;
+    
+    pfc::string8 artist;
+    pfc::string8 album;
     static_api_ptr_t<titleformat_compiler> titleService;
-    //titleService->compile()
-    //p_track->format_title_nonlocking(NULL, fileInfo, titleService, NULL);
+    titleformat_object::ptr fmt;
+
+    //todo£º±àÂë×ª»»(GBK->UNICODE?)
+    titleService->compile(fmt, "%TITLE%");
+    p_track->format_title_nonlocking(NULL, title, fmt, NULL);
+
+    titleService->compile(fmt, "%ARTIST%");
+    p_track->format_title_nonlocking(NULL, artist, fmt, NULL);
+
+    titleService->compile(fmt, "%ALBUM%");
+    p_track->format_title_nonlocking(NULL, album, fmt, NULL);
+
+    m_lrcPlayer.setPlayingSong(title.get_ptr(), album.get_ptr(), artist.get_ptr());
 }
 
 void CLyricsWindow::on_playback_stop(play_control::t_stop_reason reason) {

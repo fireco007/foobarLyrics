@@ -120,6 +120,9 @@ private:
     /// \see 无
     bool loadLrcFile();
 
+    /// \brief insert one line of lyrics
+    void addLrcSentence(unsigned int timeStamp, string &lrc);
+
 private:
     string m_lrcDir; ///< 歌词文件目录
     vector<pair<unsigned int, string>> m_lycVec; ///< 歌词容器(以行为单位)pair<timestamp, lyrics>
@@ -127,6 +130,7 @@ private:
     LYC_CALLBACK m_cbFun;  ///< 回调函数，用于写回歌词
     vector<pair<unsigned int, string>>::size_type m_curLyc; ///< 当前歌词行数
 
+    BOOL m_isUTF8;  ///< lyrics file is UTF8 form
     string m_title; ///< 歌曲名称
     string m_artist; ///< 歌手(艺术家)
     string m_album; ///< 专辑

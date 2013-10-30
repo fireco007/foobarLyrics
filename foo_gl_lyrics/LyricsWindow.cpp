@@ -73,7 +73,8 @@ GLvoid CLyricsWindow::initializeGL(GLsizei width, GLsizei height)
     //glEnable(GL_BLEND);
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-    m_lrcFont.MyCreateFont("汉堡包手机字体", 100, 80, 0, 0, true);
+    m_lrcFont.MyCreateFont("微软雅黑", 100, 80, 0, 0, true);
+    //m_lrcFont.MyCreateFont("汉堡包手机字体", 100, 80, 0, 0, true);
     //g_font.CreateFont("叶根友爵宋体", 200, 80, 0, 0, 0);
 } 
 
@@ -540,7 +541,6 @@ void CLyricsWindow::on_playback_new_track(metadb_handle_ptr p_track) {
     static_api_ptr_t<titleformat_compiler> titleService;
     titleformat_object::ptr fmt;
 
-    //todo：编码转换(GBK->UNICODE?)
     titleService->compile(fmt, "%TITLE%");
     p_track->format_title_nonlocking(NULL, title, fmt, NULL);
 

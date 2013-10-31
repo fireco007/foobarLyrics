@@ -1,6 +1,9 @@
 #include "LyricsPlayer.h"
 #include <cassert>
 #include <fstream>
+#include <sys/types.h>
+#include <sys/timeb.h>
+
 
 #define GET_LYRICS_TEXT(text, linetext, pos) \
     if (m_isUTF8) { \
@@ -21,7 +24,8 @@ char lrc_label[LRC_LABEL_LEN][5] = {
 };
 
 string LyricsPlayer::m_info;
-
+HANDLE LyricsPlayer::m_thEvent;
+HANDLE LyricsPlayer::m_freezeEvent;
 string UTF8ToGB(const char* str)
 {
     WCHAR *strSrc;
@@ -31,7 +35,10 @@ string UTF8ToGB(const char* str)
     //get size
     int stringSize = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
     strSrc = new WCHAR[stringSize + 1];
-    MultiByteToWideChar(CP_UTF8, 0, str, -1, strSrc, stringSize);
+    memset(strSrc, 0, stringSize + 1);
+    MultiByteToWideChar(CP_UTF8, 0, str, -1, strSrc, stringSize + 1);
+
+
 
     stringSize = WideCharToMultiByte(CP_ACP, 0, strSrc, -1, NULL, 0, NULL, NULL);
     szRes = new TCHAR[stringSize + 1];
@@ -45,12 +52,29 @@ string UTF8ToGB(const char* str)
     return strGB;
 }
 
-LyricsPlayer::LyricsPlayer(void) : m_cbFun(NULL), m_isUTF8(false)
+LyricsPlayer::LyricsPlayer(void) : m_cbFun(NULL), m_isUTF8(false), m_thLrc(NULL), m_tmStart(0)
+    , m_tmPause(0), m_tmDelay(0), m_isPause(FALSE)
 {
+    m_thEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+    m_freezeEvent = CreateEvent(NULL, TRUE, TRUE, NULL);
+    InitializeCriticalSection(&m_cs);
 }
 
 LyricsPlayer::~LyricsPlayer(void)
 {
+    if (m_thLrc) {
+        CloseHandle(m_thLrc);
+    }
+
+    if (m_thEvent) {
+        CloseHandle(m_thEvent);
+    }
+
+    if (m_freezeEvent) {
+        CloseHandle(m_freezeEvent);
+    }
+
+    DeleteCriticalSection(&m_cs);
 }
 
 void LyricsPlayer::setLrcDirectory(const string &strDir)
@@ -65,9 +89,14 @@ bool LyricsPlayer::setPlayingSong(const char *strSongName, const char *strAlbum,
     m_album = strAlbum;
 
     //clear lyrics info
+    SetEvent(m_freezeEvent);
     m_lycVec.clear();
     m_info.clear();
     m_isUTF8 = false;
+    m_isPause = FALSE;
+    m_tmPause = 0;
+    m_tmDelay = 0;
+    m_curLyc = 0;
 
     //load lyrics file
     if (!loadLrcFile()) {
@@ -247,22 +276,72 @@ bool LyricsPlayer::parseLrc(const string &fileName)
 
 bool LyricsPlayer::startDisplayLrc()
 {
-    HANDLE threadHandle;
     DWORD thID;
 
-    //初始化歌词播放位置
-    m_curLyc = 0;
+    if (m_thLrc) {
+        CloseHandle(m_thLrc);
+    }
 
     //创建线程开始播放歌词
-    threadHandle = CreateThread(NULL, 0, delayFun, this, 0, &thID);
+    m_tmStart = getCurTime();
 
-    if (threadHandle == INVALID_HANDLE_VALUE) {
+    m_thLrc = CreateThread(NULL, 0, delayFun, this, 0, &thID);
+
+    if (m_thLrc == INVALID_HANDLE_VALUE) {
         return false;
     }
 
     return true;
 }
 
+void LyricsPlayer::stopDisplayLrc()
+{
+    //string stopMsg = "播放停止";
+    SetEvent(m_thEvent);
+
+    if (m_isPause) {
+        m_isPause = FALSE;
+    }
+
+    //WaitForSingleObject(m_thLrc, INFINITE);
+    //callClientCb(stopMsg);
+}
+
+void LyricsPlayer::startPlayAnyTime(unsigned int tmPos)
+{
+    pair<unsigned int, string> lrcElem;
+
+    EnterCriticalSection(&m_cs);
+    for (int i = 0; i < m_lycVec.size(); i++) {
+        lrcElem =  m_lycVec[i];
+        if (lrcElem.first > tmPos) {
+            m_curLyc = i;
+            lrcElem.first = tmPos;
+            break;
+        }
+    }
+    LeaveCriticalSection(&m_cs);
+
+}
+
+void LyricsPlayer::pauseDisplayLrc(bool isPause)
+{
+    if (m_isPause != isPause) {
+
+        m_isPause = isPause;
+        if (isPause) {
+            m_tmPause = getCurTime();
+            //stop thread here
+
+            ResetEvent(m_freezeEvent);
+        } else {
+            m_tmDelay += (getCurTime() - m_tmPause);
+
+            startPlayAnyTime(getCurTime() - m_tmStart - m_tmDelay);
+            SetEvent(m_freezeEvent);
+        }
+    }
+}
 
 DWORD WINAPI LyricsPlayer::delayFun(_In_  LPVOID lpParameter)
 {
@@ -276,11 +355,11 @@ DWORD WINAPI LyricsPlayer::delayFun(_In_  LPVOID lpParameter)
     pair<unsigned int, string> lrcObj;
     unsigned int lastTimeStamp = 0;
     unsigned int delay;
-    while (player->getNextLrcLine(lrcObj)) {
+    while (player->getNextLrcLine(lrcObj, lastTimeStamp) && WaitForSingleObject(m_thEvent, 0) == WAIT_TIMEOUT) {
         
         delay = lrcObj.first - lastTimeStamp;
-        lastTimeStamp = lrcObj.first;
         Sleep(delay);
+        WaitForSingleObject(m_freezeEvent, INFINITE);
         player->callClientCb(lrcObj.second);
     }
 
@@ -288,14 +367,26 @@ DWORD WINAPI LyricsPlayer::delayFun(_In_  LPVOID lpParameter)
 }
 
 
-bool LyricsPlayer::getNextLrcLine(pair<unsigned int, string> &lrcObj)
+bool LyricsPlayer::getNextLrcLine(pair<unsigned int, string> &lrcObj, unsigned int &lastTimeStamp)
 {
     if (m_curLyc >= m_lycVec.size()) {
         return false;
     }
 
+    EnterCriticalSection(&m_cs);
+
     lrcObj = m_lycVec[m_curLyc];
+    
+    if (m_curLyc == 0) {
+        lastTimeStamp = 0;
+    } else {
+        lastTimeStamp = (m_lycVec[m_curLyc - 1].first);
+    }
     m_curLyc++;
+
+    LeaveCriticalSection(&m_cs);
+
+    
     return true;
 }
 
@@ -308,7 +399,7 @@ bool LyricsPlayer::loadLrcFile()
 {
     //歌词文件的命名规则和Lyrics show panel相同，即 : 艺术家 - 歌曲名称.lrc
     string lrcName = m_lrcDir + m_artist + " - " + m_title + ".lrc";
-    
+
     //todo ： 判读文件是否存在，如不存在需要搜索网络并下载
     
     return parseLrc(lrcName);
@@ -337,4 +428,11 @@ void LyricsPlayer::addLrcSentence(unsigned int timeStamp, string &lrc)
 
     m_lycVec.push_back(lrcElem);
 
+}
+
+long long LyricsPlayer::getCurTime()
+{
+    timeb timeNow;
+    ftime(&timeNow);
+    return timeNow.time * 1000 + timeNow.millitm;
 }

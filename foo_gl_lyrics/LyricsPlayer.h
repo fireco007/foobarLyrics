@@ -42,7 +42,11 @@ public:
     /// \param   void   
     /// \return  bool 是否停止 
     /// \see 无  
-    bool stopDisplayLrc();
+    void stopDisplayLrc();
+
+    void pauseDisplayLrc(bool isPause);
+
+    void startPlayAnyTime(unsigned int tmPos);
 
     /// \brief 设置歌词文件目录
     ///
@@ -104,7 +108,7 @@ private:
     /// \param    lrcObj 延迟时间和歌词
     /// \return   bool   是否成功  
     /// \see 无
-    bool getNextLrcLine(pair<unsigned int, string> &lrcObj);
+    bool getNextLrcLine(pair<unsigned int, string> &lrcObj, unsigned int &lastTimeStamp);
 
     /// \brief    歌词定时显示线程函数
     ///
@@ -123,6 +127,8 @@ private:
     /// \brief insert one line of lyrics
     void addLrcSentence(unsigned int timeStamp, string &lrc);
 
+    long long getCurTime();
+
 private:
     string m_lrcDir; ///< 歌词文件目录
     vector<pair<unsigned int, string>> m_lycVec; ///< 歌词容器(以行为单位)pair<timestamp, lyrics>
@@ -134,6 +140,16 @@ private:
     string m_title; ///< 歌曲名称
     string m_artist; ///< 歌手(艺术家)
     string m_album; ///< 专辑
+
+    static HANDLE m_thEvent; ///< thread stop event 
+    static HANDLE m_freezeEvent; ///< thread stop event 
+    HANDLE m_thLrc; ///< thread
+    CRITICAL_SECTION m_cs;
+    BOOL m_isPause;
+
+    long long m_tmStart;
+    long long m_tmPause;
+    long long m_tmDelay;
 };
 
 #endif//__LYRICS_PLAYER_H__

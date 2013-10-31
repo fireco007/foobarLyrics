@@ -140,7 +140,24 @@ void MyGLfont::Show2DText(char *str)
     glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
     while(i<m_iCount)
     {
-        if(IsDBCSLeadByte(str[i]))
+        //int isUnicode = IS_TEXT_UNICODE_SIGNATURE | IS_TEXT_UNICODE_REVERSE_SIGNATURE | IS_TEXT_UNICODE_STATISTICS | IS_TEXT_UNICODE_ASCII16;
+        //if (IsTextUnicode(str, strlen(str) + 1, &isUnicode)) {
+            //ich = str[i];
+            //i += 2;
+            //wglUseFontOutlinesW(hDC,//字体轮廓设备联系DC 
+            //    ich, //要转换为显示列表的第一个字符 
+            //    1, //要转换为显示列表的字符数 
+            //    m_listbase+j,//显示列表的基数 
+            //    1.0f, //指定与实际轮廓的最大偏移量 
+            //    0,//0.15f, //在Z轴负方向的值 
+            //    WGL_FONT_POLYGONS, //指定显示列表线段或多边形 
+            //    &gmf[j]);
+
+            //FTextList[j]=j; 
+            //j++; 
+        //}
+
+        /*else*/ if(IsDBCSLeadByte(str[i]))
         { 
             //判断是否为双字节 
             ich=str[i]; 

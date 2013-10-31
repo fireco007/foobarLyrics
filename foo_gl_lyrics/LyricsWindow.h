@@ -80,8 +80,8 @@ private:
 
 	// play_callback methods (the rest)
 	virtual void on_playback_starting(play_control::t_track_command p_command, bool p_paused) {}
-	virtual void on_playback_seek(double p_time) {}
-	virtual void on_playback_pause(bool p_state) {}
+	virtual void on_playback_seek(double p_time);
+	virtual void on_playback_pause(bool p_state);
 	virtual void on_playback_edited(metadb_handle_ptr p_track) {}
 	virtual void on_playback_dynamic_info(const file_info & p_info) {}
 	virtual void on_playback_time(double p_time) {}

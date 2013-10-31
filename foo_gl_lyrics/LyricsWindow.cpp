@@ -165,6 +165,7 @@ BOOL CLyricsWindow::ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LP
             //add by excalibur
             //init OpenGL context with HDC
             m_hDC = GetDC(hWnd); 
+            int charSet = GetTextCharset(m_hDC);
             if (!bSetupPixelFormat(m_hDC)) 
                 PostQuitMessage (0); 
 
@@ -298,7 +299,9 @@ LRESULT CLyricsWindow::OnCreate(LPCREATESTRUCT pCreateStruct) {
 	static_api_ptr_t<play_callback_manager>()->register_callback(this,
 		flag_on_playback_new_track |
 		flag_on_playback_dynamic_info_track |
-		flag_on_playback_stop,
+		flag_on_playback_stop |
+        flag_on_playback_pause |
+        flag_on_playback_seek,
 		false);
 
 	return 0;
@@ -553,9 +556,20 @@ void CLyricsWindow::on_playback_new_track(metadb_handle_ptr p_track) {
     m_lrcPlayer.setPlayingSong(title.get_ptr(), album.get_ptr(), artist.get_ptr());
 }
 
+void CLyricsWindow::on_playback_seek(double p_time)
+{
+
+}
+
+void CLyricsWindow::on_playback_pause(bool p_state)
+{
+    m_lrcPlayer.pauseDisplayLrc(p_state);
+}
+
 void CLyricsWindow::on_playback_stop(play_control::t_stop_reason reason) {
 	RedrawWindow();
 	set_selection(metadb_handle_list());
+    m_lrcPlayer.stopDisplayLrc();
 }
 
 void CLyricsWindow::on_playback_dynamic_info_track(const file_info & p_info) {

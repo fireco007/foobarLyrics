@@ -316,7 +316,8 @@ void LyricsPlayer::startPlayAnyTime(unsigned int tmPos)
         lrcElem =  m_lycVec[i];
         if (lrcElem.first > tmPos) {
             m_curLyc = i;
-            lrcElem.first = tmPos;
+            m_lycVec[i - 1].first = tmPos;
+            callClientCb(m_lycVec[i - 1].second);
             break;
         }
     }

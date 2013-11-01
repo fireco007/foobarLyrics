@@ -558,7 +558,8 @@ void CLyricsWindow::on_playback_new_track(metadb_handle_ptr p_track) {
 
 void CLyricsWindow::on_playback_seek(double p_time)
 {
-
+    unsigned int timePos = (unsigned int)(p_time * 1000);
+    m_lrcPlayer.startPlayAnyTime(timePos);
 }
 
 void CLyricsWindow::on_playback_pause(bool p_state)

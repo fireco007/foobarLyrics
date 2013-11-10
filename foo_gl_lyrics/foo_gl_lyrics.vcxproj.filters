@@ -35,6 +35,9 @@
     <ClInclude Include="LyricsPlayer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LrcDownloader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="config.cpp">
@@ -56,6 +59,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LyricsPlayer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LrcDownloader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -14,6 +14,7 @@
 #include <Windows.h>
 #include <string>
 #include <vector>
+#include "LrcDownloader.h"
 
 using namespace std;
 
@@ -119,10 +120,10 @@ private:
 
     /// \brief 加载歌词文件
     ///
-    /// \param
+    /// \param    autoDownload  
     /// \return   bool   加载歌词是否成功  
     /// \see 无
-    bool loadLrcFile();
+    bool loadLrcFile(bool autoDownload = false);
 
     /// \brief insert one line of lyrics
     void addLrcSentence(unsigned int timeStamp, string &lrc);
@@ -150,6 +151,8 @@ private:
     long long m_tmStart;
     long long m_tmPause;
     long long m_tmDelay;
+
+    LrcDownloader m_downloader;
 };
 
 #endif//__LYRICS_PLAYER_H__

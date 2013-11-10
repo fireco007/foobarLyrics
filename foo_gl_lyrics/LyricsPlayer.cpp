@@ -52,6 +52,35 @@ string UTF8ToGB(const char* str)
     return strGB;
 }
 
+//string GBToUTF8(const char* str)
+//{
+//    WCHAR *strRes;
+//    TCHAR *szSrc;
+//    int len;
+//
+//
+//    int stringSize = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
+//    szSrc = new TCHAR[stringSize + 1];
+//    len = (stringSize + 1) * sizeof(CHAR);
+//    memset(szSrc, 0, len);
+//    WideCharToMultiByte(CP_ACP, 0, str, -1, (LPSTR)szSrc, stringSize, NULL, NULL);
+//
+//    //get size
+//    stringSize = MultiByteToWideChar(CP_UTF8, 0, szSrc, -1, NULL, 0);
+//    strRes = new WCHAR[stringSize + 1];
+//    memset(strSrc, 0, stringSize + 1);
+//    MultiByteToWideChar(CP_UTF8, 0, szSrc, -1, strRes, stringSize + 1);
+//
+//
+//
+//
+//
+//    delete []szSrc;
+//    string strGB((char*)szRes);
+//    delete []szRes;
+//    return strGB;
+//}
+
 LyricsPlayer::LyricsPlayer(void) : m_cbFun(NULL), m_isUTF8(false), m_thLrc(NULL), m_tmStart(0)
     , m_tmPause(0), m_tmDelay(0), m_isPause(FALSE)
 {
@@ -107,7 +136,7 @@ bool LyricsPlayer::setPlayingSong(const char *strSongName, const char *strAlbum,
         m_album = UTF8ToGB(strAlbum);
 
         m_isUTF8 = true;
-        if (!loadLrcFile()) {
+        if (!loadLrcFile(true)) {
             m_isUTF8 = false;
             string strErr = "没有找到歌词";
             callClientCb(strErr);
@@ -396,14 +425,21 @@ void LyricsPlayer::callClientCb(const string &strLrc)
     m_cbFun(strLrc);
 }
 
-bool LyricsPlayer::loadLrcFile()
+bool LyricsPlayer::loadLrcFile(bool autoDownload)
 {
     //歌词文件的命名规则和Lyrics show panel相同，即 : 艺术家 - 歌曲名称.lrc
     string lrcName = m_lrcDir + m_artist + " - " + m_title + ".lrc";
 
     //todo ： 判读文件是否存在，如不存在需要搜索网络并下载
-    
-    return parseLrc(lrcName);
+    bool flag = parseLrc(lrcName);
+    if (!flag && autoDownload) {
+        
+        //download lrc
+        m_downloader.getLrc(m_artist.c_str(), m_title.c_str());
+        return parseLrc(lrcName);
+    }
+
+    return flag;
 }
 
 void LyricsPlayer::addLrcSentence(unsigned int timeStamp, string &lrc)

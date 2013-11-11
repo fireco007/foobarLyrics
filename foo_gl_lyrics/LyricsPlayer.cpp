@@ -1,9 +1,8 @@
 #include "LyricsPlayer.h"
+#include "utils.h"
+
 #include <cassert>
 #include <fstream>
-#include <sys/types.h>
-#include <sys/timeb.h>
-
 
 #define GET_LYRICS_TEXT(text, linetext, pos) \
     if (m_isUTF8) { \
@@ -18,7 +17,7 @@ char lrc_label[LRC_LABEL_LEN][5] = {
     "[ar:", //artist
     "[al:", //album
     "[by:", //lyr file author
-    "[id:", //i don't know
+    "[id:", 
     "[off",
     "[t_t"
 };
@@ -26,60 +25,6 @@ char lrc_label[LRC_LABEL_LEN][5] = {
 string LyricsPlayer::m_info;
 HANDLE LyricsPlayer::m_thEvent;
 HANDLE LyricsPlayer::m_freezeEvent;
-string UTF8ToGB(const char* str)
-{
-    WCHAR *strSrc;
-    TCHAR *szRes;
-    int len;
-
-    //get size
-    int stringSize = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
-    strSrc = new WCHAR[stringSize + 1];
-    memset(strSrc, 0, stringSize + 1);
-    MultiByteToWideChar(CP_UTF8, 0, str, -1, strSrc, stringSize + 1);
-
-
-
-    stringSize = WideCharToMultiByte(CP_ACP, 0, strSrc, -1, NULL, 0, NULL, NULL);
-    szRes = new TCHAR[stringSize + 1];
-    len = (stringSize + 1) * sizeof(CHAR);
-    memset(szRes, 0, len);
-    WideCharToMultiByte(CP_ACP, 0, strSrc, -1, (LPSTR)szRes, stringSize, NULL, NULL);
-
-    delete []strSrc;
-    string strGB((char*)szRes);
-    delete []szRes;
-    return strGB;
-}
-
-//string GBToUTF8(const char* str)
-//{
-//    WCHAR *strRes;
-//    TCHAR *szSrc;
-//    int len;
-//
-//
-//    int stringSize = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
-//    szSrc = new TCHAR[stringSize + 1];
-//    len = (stringSize + 1) * sizeof(CHAR);
-//    memset(szSrc, 0, len);
-//    WideCharToMultiByte(CP_ACP, 0, str, -1, (LPSTR)szSrc, stringSize, NULL, NULL);
-//
-//    //get size
-//    stringSize = MultiByteToWideChar(CP_UTF8, 0, szSrc, -1, NULL, 0);
-//    strRes = new WCHAR[stringSize + 1];
-//    memset(strSrc, 0, stringSize + 1);
-//    MultiByteToWideChar(CP_UTF8, 0, szSrc, -1, strRes, stringSize + 1);
-//
-//
-//
-//
-//
-//    delete []szSrc;
-//    string strGB((char*)szRes);
-//    delete []szRes;
-//    return strGB;
-//}
 
 LyricsPlayer::LyricsPlayer(void) : m_cbFun(NULL), m_isUTF8(false), m_thLrc(NULL), m_tmStart(0)
     , m_tmPause(0), m_tmDelay(0), m_isPause(FALSE)
@@ -109,6 +54,7 @@ LyricsPlayer::~LyricsPlayer(void)
 void LyricsPlayer::setLrcDirectory(const string &strDir)
 {
     m_lrcDir = strDir;
+    LrcDownloader::setLrcDir(strDir);
 }
 
 bool LyricsPlayer::setPlayingSong(const char *strSongName, const char *strAlbum, const char *strArtist)
@@ -131,9 +77,9 @@ bool LyricsPlayer::setPlayingSong(const char *strSongName, const char *strAlbum,
     if (!loadLrcFile()) {
 
         //may be Encode in UTF-8
-        m_title = UTF8ToGB(strSongName);
-        m_artist = UTF8ToGB(strArtist);
-        m_album = UTF8ToGB(strAlbum);
+        m_title = gl_lyrics_utils::UTF8ToGB(strSongName);
+        m_artist = gl_lyrics_utils::UTF8ToGB(strArtist);
+        m_album = gl_lyrics_utils::UTF8ToGB(strAlbum);
 
         m_isUTF8 = true;
         if (!loadLrcFile(true)) {
@@ -200,50 +146,6 @@ bool LyricsPlayer::parseLrc(const string &fileName)
             continue;
         }
 
-        //string::size_type pos = line.find("[ti:");//曲目
-        //if (pos != string::npos) {
-        //    m_info += " 曲目 : ";
-        //    GET_LYRICS_TEXT(m_info, line, pos);
-        //    //if (m_isUTF8) {
-        //    //    m_info += UTF8ToGB(line.substr(pos + 4, line.find_last_not_of("]") - pos - 3).c_str());
-        //    //} else {
-        //    //    m_info += line.substr(pos + 4, line.find_last_not_of("]") - pos - 3);
-        //    //}
-        //    continue;
-        //}
-        //
-        //pos = line.find("[ar:");//歌手
-        //if (pos != string::npos) {
-        //    m_info += " 歌手 : ";
-        //    GET_LYRICS_TEXT(m_info, line, pos);
-        //    //m_info += line.substr(pos + 4, line.find_last_not_of("]") - pos - 3);
-        //    continue;
-        //}
-        //
-        //pos = line.find("[al:");//专辑
-        //if (pos != string::npos) {
-        //    m_info += " 专辑 : ";
-        //    GET_LYRICS_TEXT(m_info, line, pos);
-        //    //m_info += line.substr(pos + 4, line.find_last_not_of("]") - pos - 3);
-        //    continue;
-        //}
-
-        //pos = line.find("[by:");//歌词提供
-        //if (pos != string::npos) {
-        //    m_info += " 歌词 : ";
-        //    GET_LYRICS_TEXT(m_info, line, pos);
-        //    //m_info += line.substr(pos + 4, line.find_last_not_of("]") - pos - 3);
-        //    continue;
-        //}
-
-        //pos = line.find("[id:");//??
-        //if (pos != string::npos) {
-        //    m_info += " id : ";
-        //    GET_LYRICS_TEXT(m_info, line, pos);
-        //    //m_info += line.substr(pos + 4, line.find_last_not_of("]") - pos - 3);
-        //    continue;
-        //}
-
         //解析时间
         pos = line.find_first_of("[");
         string::size_type timeEndPos = line.find_first_of("]");
@@ -287,7 +189,7 @@ bool LyricsPlayer::parseLrc(const string &fileName)
 
         //check utf8
         if (m_isUTF8) {
-            strLrcLin = UTF8ToGB(line.c_str());
+            strLrcLin = gl_lyrics_utils::UTF8ToGB(line.c_str());
         } else {
             strLrcLin = line;
         }
@@ -312,7 +214,7 @@ bool LyricsPlayer::startDisplayLrc()
     }
 
     //创建线程开始播放歌词
-    m_tmStart = getCurTime();
+    m_tmStart = gl_lyrics_utils::getCurTime();
 
     m_thLrc = CreateThread(NULL, 0, delayFun, this, 0, &thID);
 
@@ -341,7 +243,7 @@ void LyricsPlayer::startPlayAnyTime(unsigned int tmPos)
     pair<unsigned int, string> lrcElem;
 
     EnterCriticalSection(&m_cs);
-    for (int i = 0; i < m_lycVec.size(); i++) {
+    for (LYCVEC_SIZE i = 0; i < m_lycVec.size(); i++) {
         lrcElem =  m_lycVec[i];
         if (lrcElem.first > tmPos) {
             m_curLyc = i;
@@ -360,14 +262,14 @@ void LyricsPlayer::pauseDisplayLrc(bool isPause)
 
         m_isPause = isPause;
         if (isPause) {
-            m_tmPause = getCurTime();
+            m_tmPause = gl_lyrics_utils::getCurTime();
             //stop thread here
 
             ResetEvent(m_freezeEvent);
         } else {
-            m_tmDelay += (getCurTime() - m_tmPause);
+            m_tmDelay += (gl_lyrics_utils::getCurTime() - m_tmPause);
 
-            startPlayAnyTime(getCurTime() - m_tmStart - m_tmDelay);
+            startPlayAnyTime(static_cast<unsigned int>(gl_lyrics_utils::getCurTime() - m_tmStart - m_tmDelay));
             SetEvent(m_freezeEvent);
         }
     }
@@ -430,7 +332,6 @@ bool LyricsPlayer::loadLrcFile(bool autoDownload)
     //歌词文件的命名规则和Lyrics show panel相同，即 : 艺术家 - 歌曲名称.lrc
     string lrcName = m_lrcDir + m_artist + " - " + m_title + ".lrc";
 
-    //todo ： 判读文件是否存在，如不存在需要搜索网络并下载
     bool flag = parseLrc(lrcName);
     if (!flag && autoDownload) {
         
@@ -444,6 +345,10 @@ bool LyricsPlayer::loadLrcFile(bool autoDownload)
 
 void LyricsPlayer::addLrcSentence(unsigned int timeStamp, string &lrc)
 {
+    if (lrc.empty()) {
+        return;
+    }
+
     pair<unsigned int, string> lrcElem = make_pair<unsigned int, string>(timeStamp, lrc);
     if (m_lycVec.size() == 0) {
         lrcElem = make_pair<unsigned int, string>(timeStamp, lrc);
@@ -467,9 +372,3 @@ void LyricsPlayer::addLrcSentence(unsigned int timeStamp, string &lrc)
 
 }
 
-long long LyricsPlayer::getCurTime()
-{
-    timeb timeNow;
-    ftime(&timeNow);
-    return timeNow.time * 1000 + timeNow.millitm;
-}

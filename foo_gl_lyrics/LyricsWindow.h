@@ -124,6 +124,9 @@ private:
     /// \see нч
     BOOL bSetupPixelFormat(HDC hdc);
 
+    //create lrc directory in foobar install path
+    void createLRCDir(const char* strDir);
+
 private:
 	CFont m_font;
 

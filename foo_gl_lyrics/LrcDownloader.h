@@ -18,20 +18,23 @@ public:
 
     bool getLrc(const char* artist, const char *title);
 
-    int getLrcUrl(const char* getUrl, string &retBuff);
-    int saveLrcFile(const char* strUrl, string &retBuff);
-
     //search in the html text to find out the lrc page
     static size_t searchLrcUrlHandler(void *buffer, size_t size, size_t nmemb, void *user_p);
 
     //search in the lrc page to get the lrc file
     static size_t saveLrcHandler(void *buffer, size_t size, size_t nmemb, void *user_p);
 
+    static void setLrcDir(const string &strDir);
+private:
+    int getLrcUrl(const char* getUrl, string &retBuff);
+    int saveLrcFile(const char* strUrl, string &retBuff);
+
 private:
     CURL *m_url;
 
     string m_siteUrl;
 
+    static string m_lrcDir;
     static string m_lrcUrlBeginKey; //search the lrc file's url in the site page's source code
     static string m_lrcUrlEndKey; 
     static string m_lrcBeginKey; //the lrc is included in a http file. this is the keyword where the lrc begin

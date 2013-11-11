@@ -128,14 +128,14 @@ private:
     /// \brief insert one line of lyrics
     void addLrcSentence(unsigned int timeStamp, string &lrc);
 
-    long long getCurTime();
-
 private:
     string m_lrcDir; ///< 歌词文件目录
     vector<pair<unsigned int, string>> m_lycVec; ///< 歌词容器(以行为单位)pair<timestamp, lyrics>
     static string m_info;       ///< 歌词信息(曲目、歌手、专辑、作者)
     LYC_CALLBACK m_cbFun;  ///< 回调函数，用于写回歌词
     vector<pair<unsigned int, string>>::size_type m_curLyc; ///< 当前歌词行数
+
+    typedef vector<pair<unsigned int, string>>::size_type LYCVEC_SIZE;
 
     BOOL m_isUTF8;  ///< lyrics file is UTF8 form
     string m_title; ///< 歌曲名称
@@ -146,7 +146,7 @@ private:
     static HANDLE m_freezeEvent; ///< thread stop event 
     HANDLE m_thLrc; ///< thread
     CRITICAL_SECTION m_cs;
-    BOOL m_isPause;
+    bool m_isPause;
 
     long long m_tmStart;
     long long m_tmPause;

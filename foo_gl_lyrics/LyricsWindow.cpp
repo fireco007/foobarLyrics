@@ -8,6 +8,8 @@ HWND CLyricsWindow::m_wnd;
 CLyricsWindow CLyricsWindow::g_instance;
 string CLyricsWindow::m_strLrc;
 
+//The directory for save lyrics files;
+#define LYRICS_PATH ".\\lyrics\\"
 #define WND_WIDTH 1920
 #define WND_HEIGHT 200
 
@@ -184,9 +186,8 @@ BOOL CLyricsWindow::ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LP
 
             initializeGL(rect.right, rect.bottom); 
 
-            //string strFile = "D:\\MyVCProject\\LyricsTool\\µ¾Ïã.lrc";
-            //m_lrcPlayer.parseLrc(strFile);
-            string strDir = "C:\\Users\\fireco007\\AppData\\Roaming\\foobar2000\\lyrics\\";
+            string strDir = LYRICS_PATH;
+            createLRCDir(LYRICS_PATH);
             m_lrcPlayer.setLrcDirectory(strDir);
             m_lrcPlayer.setLrcCB(displayLrcCallback);
             //m_lrcPlayer.startDisplayLrc();
@@ -427,6 +428,15 @@ void CLyricsWindow::Draw(HDC hdc, CRect rcPaint) {
 	catch (const std::exception & exc) {
 		console::formatter() << "Exception occurred while drawing " APP_TITLE " window:\n" << exc;
 	}
+}
+
+
+void CLyricsWindow::createLRCDir(const char* strDir)
+{
+    DWORD dwAttr = GetFileAttributesA(strDir);
+    if (dwAttr == 0xffffffff) {
+        CreateDirectoryA(strDir, NULL);
+    }
 }
 
 void CLyricsWindow::OnContextMenu(HWND hWnd, CPoint point) {

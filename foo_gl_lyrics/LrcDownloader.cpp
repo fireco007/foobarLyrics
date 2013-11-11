@@ -1,49 +1,8 @@
 #include "LrcDownloader.h"
+#include "utils.h"
 #include <fstream>
 
 using namespace std;
-
-void UnicodeToUTF8(char* pOut,wchar_t* pText)   
-{   
-    // 注意 WCHAR高低字的顺序,低字节在前，高字节在后   
-    char* pchar = (char *)pText;   
-    pOut[0] = (0xE0 | ((pchar[1] & 0xF0) >> 4));  
-    pOut[1] = (0x80 | ((pchar[1] & 0x0F) << 2)) + ((pchar[0] & 0xC0) >> 6);  
-    pOut[2] = (0x80 | (pchar[0] & 0x3F));  
-} 
-
-void GBToUTF8(string& pOut,char *pText, int pLen)  
-{    
-    char buf[4] = {0};   
-    int nLength = pLen* 3;   
-    char* rst = new char[nLength];    
-    memset(rst,0,nLength);    
-    int i = 0 ,j = 0;   
-    while(i < pLen)   
-    {   
-        //如果是英文直接复制就可以   
-        if( *(pText + i) >= 0)   
-        {    
-            rst[j++] = pText[i++];  
-        }   
-        else    
-        {    
-            wchar_t pbuffer;
-            ::MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, pText + i, 2, &pbuffer, 1); 
-            UnicodeToUTF8(buf, &pbuffer);  
-            rst[j] = buf[0];     
-            rst[j+1] = buf[1];   
-            rst[j+2] = buf[2];   
-            j += 3;   
-            i += 2;   
-        }     
-    }    
-
-    rst[j] ='\n';   //返回结果    
-    pOut = rst;  
-    delete []rst;  
-    return;     
-} 
 
 string LrcDownloader::m_lrcUrlBeginKey = "http://www.1ting.com/lrc";
 string LrcDownloader::m_lrcUrlEndKey = "\""; 
@@ -53,10 +12,11 @@ string LrcDownloader::m_lrcEndKey = "</div>";
 string LrcDownloader::m_lrcTitle;
 string LrcDownloader::m_lrcArtist;
 
+string LrcDownloader::m_lrcDir;
+
 LrcDownloader::LrcDownloader(void)
 {
     m_siteUrl = "http://so.1ting.com/all.do?q=";
-
 
     CURLcode retCode = curl_global_init(CURL_GLOBAL_ALL);
 
@@ -79,6 +39,11 @@ LrcDownloader::~LrcDownloader(void)
     }
     
     curl_global_cleanup();
+}
+
+void LrcDownloader::setLrcDir(const string &strDir)
+{
+    m_lrcDir = strDir;
 }
 
 size_t LrcDownloader::searchLrcUrlHandler(void *buffer, size_t size, size_t nmemb, void *user_p)
@@ -121,8 +86,8 @@ size_t LrcDownloader::saveLrcHandler(void *buffer, size_t size, size_t nmemb, vo
         str->append(strIn);
 
         //set lrc file name
-        string fileName;
-        fileName = m_lrcArtist;
+        string fileName = m_lrcDir;
+        fileName += m_lrcArtist;
         fileName += " - ";
         fileName += m_lrcTitle;
         fileName += ".lrc";
@@ -217,7 +182,7 @@ bool LrcDownloader::getLrc(const char* artist, const char *title)
     m_lrcTitle = title;
     m_lrcArtist = artist;
     string strTitle;
-    GBToUTF8(strTitle, const_cast<char*>(title), strlen(title));
+    gl_lyrics_utils::GBToUTF8(strTitle, const_cast<char*>(title), strlen(title));
 
     char strUrl[1024];
     memset(strUrl, 0, 1024);
@@ -225,7 +190,7 @@ bool LrcDownloader::getLrc(const char* artist, const char *title)
     memcpy(strUrl, m_siteUrl.c_str(), urlSize);
 
     char spaceChar = 0xa;
-    for (int i = 0; i < strTitle.length(); i++) {
+    for (string::size_type i = 0; i < strTitle.length(); i++) {
         if (strTitle.at(i) == spaceChar) {
             continue;
         }

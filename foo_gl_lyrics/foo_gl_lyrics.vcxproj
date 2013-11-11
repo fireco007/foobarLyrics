@@ -125,6 +125,7 @@
     <ClInclude Include="LrcDownloader.h" />
     <ClInclude Include="LyricsPlayer.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="utils.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="LyricsWindow.h" />
     <ClInclude Include="window_helper.h" />
@@ -152,6 +153,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="LyricsWindow.cpp" />
+    <ClCompile Include="utils.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="changelog.txt" />

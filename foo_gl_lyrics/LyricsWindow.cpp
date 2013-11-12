@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "LyricsWindow.h"
 #include "DropSourceImpl.h"
-
+#include "utils.h"
 #include "config.h"
 
 HWND CLyricsWindow::m_wnd;
@@ -543,6 +543,8 @@ bool CLyricsWindow::pretranslate_message(MSG * p_msg) {
 }
 
 void CLyricsWindow::on_playback_new_track(metadb_handle_ptr p_track) {
+
+    long long startTime = gl_lyrics_utils::getCurTime();
 	RedrawWindow();
 	set_selection(pfc::list_single_ref_t<metadb_handle_ptr>(p_track));
 
@@ -563,7 +565,7 @@ void CLyricsWindow::on_playback_new_track(metadb_handle_ptr p_track) {
     titleService->compile(fmt, "%ALBUM%");
     p_track->format_title_nonlocking(NULL, album, fmt, NULL);
 
-    m_lrcPlayer.setPlayingSong(title.get_ptr(), album.get_ptr(), artist.get_ptr());
+    m_lrcPlayer.setPlayingSong(title.get_ptr(), album.get_ptr(), artist.get_ptr(), startTime);
 }
 
 void CLyricsWindow::on_playback_seek(double p_time)

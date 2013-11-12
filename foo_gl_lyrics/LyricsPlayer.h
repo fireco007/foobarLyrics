@@ -79,7 +79,7 @@ public:
     /// \param strArtist     艺术家
     /// \return       void  
     /// \see 无
-    bool setPlayingSong(const char *strSongName, const char *strAlbum, const char *strArtist);
+    bool setPlayingSong(const char *strSongName, const char *strAlbum, const char *strArtist, long long lStartTime);
 
     /// \brief 设置当前歌曲名称
     ///
@@ -148,6 +148,9 @@ private:
     CRITICAL_SECTION m_cs;
     bool m_isPause;
 
+    static long long m_tmOffset; //time offset for parse lyrics and download lyrics if required
+
+    //used for pause play and resume play 
     long long m_tmStart;
     long long m_tmPause;
     long long m_tmDelay;

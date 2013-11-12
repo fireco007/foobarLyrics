@@ -25,6 +25,7 @@ char lrc_label[LRC_LABEL_LEN][5] = {
 string LyricsPlayer::m_info;
 HANDLE LyricsPlayer::m_thEvent;
 HANDLE LyricsPlayer::m_freezeEvent;
+long long LyricsPlayer::m_tmOffset = 0;
 
 LyricsPlayer::LyricsPlayer(void) : m_cbFun(NULL), m_isUTF8(false), m_thLrc(NULL), m_tmStart(0)
     , m_tmPause(0), m_tmDelay(0), m_isPause(FALSE)
@@ -57,14 +58,15 @@ void LyricsPlayer::setLrcDirectory(const string &strDir)
     LrcDownloader::setLrcDir(strDir);
 }
 
-bool LyricsPlayer::setPlayingSong(const char *strSongName, const char *strAlbum, const char *strArtist)
+bool LyricsPlayer::setPlayingSong(const char *strSongName, const char *strAlbum, const char *strArtist, long long lStartTime)
 {
     m_title = strSongName;
     m_artist = strArtist;
     m_album = strAlbum;
+    m_tmOffset = lStartTime; //set the start time;
 
     //clear lyrics info
-    SetEvent(m_freezeEvent);
+    ResetEvent(m_freezeEvent);
     m_lycVec.clear();
     m_info.clear();
     m_isUTF8 = false;
@@ -87,6 +89,7 @@ bool LyricsPlayer::setPlayingSong(const char *strSongName, const char *strAlbum,
             string strErr = "没有找到歌词";
             callClientCb(strErr);
 
+            SetEvent(m_freezeEvent);
             return false;
         }
     }
@@ -94,6 +97,8 @@ bool LyricsPlayer::setPlayingSong(const char *strSongName, const char *strAlbum,
     //display music info
     m_info = m_artist + " - " + m_title;
     callClientCb(m_info);
+
+    SetEvent(m_freezeEvent);
 
     //play lyrics
     return startDisplayLrc();
@@ -215,7 +220,7 @@ bool LyricsPlayer::startDisplayLrc()
 
     //创建线程开始播放歌词
     m_tmStart = gl_lyrics_utils::getCurTime();
-
+    m_tmOffset = m_tmStart - m_tmOffset; //count the offset time
     m_thLrc = CreateThread(NULL, 0, delayFun, this, 0, &thID);
 
     if (m_thLrc == INVALID_HANDLE_VALUE) {
@@ -285,13 +290,16 @@ DWORD WINAPI LyricsPlayer::delayFun(_In_  LPVOID lpParameter)
 
     player->callClientCb(m_info);
     pair<unsigned int, string> lrcObj;
-    unsigned int lastTimeStamp = 0;
+    unsigned int lastTimeStamp = m_tmOffset;
     unsigned int delay;
     while (player->getNextLrcLine(lrcObj, lastTimeStamp) && WaitForSingleObject(m_thEvent, 0) == WAIT_TIMEOUT) {
         
         delay = lrcObj.first - lastTimeStamp;
         Sleep(delay);
-        WaitForSingleObject(m_freezeEvent, INFINITE);
+        if (WAIT_OBJECT_0 != WaitForSingleObject(m_freezeEvent, 0)) {
+            continue;
+        }
+
         player->callClientCb(lrcObj.second);
     }
 

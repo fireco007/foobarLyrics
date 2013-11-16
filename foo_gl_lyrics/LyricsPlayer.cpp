@@ -1,5 +1,6 @@
 #include "LyricsPlayer.h"
 #include "utils.h"
+#include "..\SDK\foobar2000.h"
 
 #include <cassert>
 #include <fstream>
@@ -28,7 +29,7 @@ HANDLE LyricsPlayer::m_freezeEvent;
 long long LyricsPlayer::m_tmOffset = 0;
 
 LyricsPlayer::LyricsPlayer(void) : m_cbFun(NULL), m_isUTF8(false), m_thLrc(NULL), m_tmStart(0)
-    , m_tmPause(0), m_tmDelay(0), m_isPause(FALSE)
+    , m_tmPause(0), m_tmDelay(0), m_isPause(FALSE), m_songIndex(0)
 {
     m_thEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
     m_freezeEvent = CreateEvent(NULL, TRUE, TRUE, NULL);
@@ -67,13 +68,14 @@ bool LyricsPlayer::setPlayingSong(const char *strSongName, const char *strAlbum,
 
     //clear lyrics info
     ResetEvent(m_freezeEvent);
-    m_lycVec.clear();
+    m_lrcVec.clear();
     m_info.clear();
     m_isUTF8 = false;
     m_isPause = FALSE;
     m_tmPause = 0;
     m_tmDelay = 0;
-    m_curLyc = 0;
+    m_curLrcLine = 0;
+    m_songIndex++;
 
     //load lyrics file
     if (!loadLrcFile()) {
@@ -248,12 +250,12 @@ void LyricsPlayer::startPlayAnyTime(unsigned int tmPos)
     pair<unsigned int, string> lrcElem;
 
     EnterCriticalSection(&m_cs);
-    for (LYCVEC_SIZE i = 0; i < m_lycVec.size(); i++) {
-        lrcElem =  m_lycVec[i];
+    for (LYCVEC_SIZE i = 0; i < m_lrcVec.size(); i++) {
+        lrcElem =  m_lrcVec[i];
         if (lrcElem.first > tmPos) {
-            m_curLyc = i;
-            m_lycVec[i - 1].first = tmPos;
-            callClientCb(m_lycVec[i - 1].second);
+            m_curLrcLine = i;
+            m_lrcVec[i - 1].first = tmPos;
+            callClientCb(m_lrcVec[i - 1].second);
             break;
         }
     }
@@ -292,41 +294,53 @@ DWORD WINAPI LyricsPlayer::delayFun(_In_  LPVOID lpParameter)
     pair<unsigned int, string> lrcObj;
     unsigned int lastTimeStamp = m_tmOffset;
     unsigned int delay;
+    unsigned int songIndex = 0;
     while (player->getNextLrcLine(lrcObj, lastTimeStamp) && WaitForSingleObject(m_thEvent, 0) == WAIT_TIMEOUT) {
         
+        songIndex = player->getSongIndex();
+
         delay = lrcObj.first - lastTimeStamp;
         Sleep(delay);
         if (WAIT_OBJECT_0 != WaitForSingleObject(m_freezeEvent, 0)) {
             continue;
         }
 
-        player->callClientCb(lrcObj.second);
+#ifdef _DEBUG
+        //log for debug
+        console::formatter() << "LRC : " << lrcObj.second.c_str() << "\n";
+#endif
+
+        if (player->getSongIndex() != songIndex) {
+
+            //the playing song has been switched when thread is sleeping.
+            songIndex = player->getSongIndex();
+        } else {
+            player->callClientCb(lrcObj.second);
+        }
     }
 
     return 0;
 }
 
-
 bool LyricsPlayer::getNextLrcLine(pair<unsigned int, string> &lrcObj, unsigned int &lastTimeStamp)
 {
-    if (m_curLyc >= m_lycVec.size()) {
+    if (m_curLrcLine >= m_lrcVec.size()) {
         return false;
     }
 
     EnterCriticalSection(&m_cs);
 
-    lrcObj = m_lycVec[m_curLyc];
+    lrcObj = m_lrcVec[m_curLrcLine];
     
-    if (m_curLyc == 0) {
+    if (m_curLrcLine == 0) {
         lastTimeStamp = 0;
     } else {
-        lastTimeStamp = (m_lycVec[m_curLyc - 1].first);
+        lastTimeStamp = (m_lrcVec[m_curLrcLine - 1].first);
     }
-    m_curLyc++;
+    m_curLrcLine++;
 
     LeaveCriticalSection(&m_cs);
 
-    
     return true;
 }
 
@@ -358,25 +372,29 @@ void LyricsPlayer::addLrcSentence(unsigned int timeStamp, string &lrc)
     }
 
     pair<unsigned int, string> lrcElem = make_pair<unsigned int, string>(timeStamp, lrc);
-    if (m_lycVec.size() == 0) {
+    if (m_lrcVec.size() == 0) {
         lrcElem = make_pair<unsigned int, string>(timeStamp, lrc);
-        m_lycVec.push_back(lrcElem);
+        m_lrcVec.push_back(lrcElem);
 
         return;
     }
 
-    vector<pair<unsigned int, string>>::iterator ite = m_lycVec.begin();
+    vector<pair<unsigned int, string>>::iterator ite = m_lrcVec.begin();
 
-    for (; ite != m_lycVec.end(); ++ite) {
+    for (; ite != m_lrcVec.end(); ++ite) {
         if (ite->first > timeStamp) {
             //ite--;
-            m_lycVec.insert(ite, lrcElem);
+            m_lrcVec.insert(ite, lrcElem);
 
             return;
         }
     }
 
-    m_lycVec.push_back(lrcElem);
+    m_lrcVec.push_back(lrcElem);
 
 }
 
+unsigned int LyricsPlayer::getSongIndex()
+{
+    return m_songIndex;
+}

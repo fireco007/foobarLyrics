@@ -111,6 +111,9 @@ private:
     /// \see 无
     bool getNextLrcLine(pair<unsigned int, string> &lrcObj, unsigned int &lastTimeStamp);
 
+    
+    unsigned int getSongIndex();
+
     /// \brief    歌词定时显示线程函数
     ///
     /// \param    lpParameter 线程函数参数
@@ -130,10 +133,11 @@ private:
 
 private:
     string m_lrcDir; ///< 歌词文件目录
-    vector<pair<unsigned int, string>> m_lycVec; ///< 歌词容器(以行为单位)pair<timestamp, lyrics>
+    vector<pair<unsigned int, string>> m_lrcVec; ///< 歌词容器(以行为单位)pair<timestamp, lyrics>
     static string m_info;       ///< 歌词信息(曲目、歌手、专辑、作者)
     LYC_CALLBACK m_cbFun;  ///< 回调函数，用于写回歌词
-    vector<pair<unsigned int, string>>::size_type m_curLyc; ///< 当前歌词行数
+    vector<pair<unsigned int, string>>::size_type m_curLrcLine; ///< 当前歌词行数
+    unsigned int m_songIndex;
 
     typedef vector<pair<unsigned int, string>>::size_type LYCVEC_SIZE;
 

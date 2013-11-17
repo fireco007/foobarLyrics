@@ -4,13 +4,13 @@
 
 #include <cassert>
 #include <fstream>
-
-#define GET_LYRICS_TEXT(text, linetext, pos) \
-    if (m_isUTF8) { \
-        text +=  UTF8ToGB(linetext.substr(pos + 4, linetext.find_last_not_of("]") - pos - 3).c_str()); \
-    } else { \
-        m_info += linetext.substr(pos + 4, linetext.find_last_not_of("]") - pos - 3); \
-    }
+//#include <intrin.h>
+//#define GET_LYRICS_TEXT(text, linetext, pos) \
+//    if (m_isUTF8) { \
+//        text +=  UTF8ToGB(linetext.substr(pos + 4, linetext.find_last_not_of("]") - pos - 3).c_str()); \
+//    } else { \
+//        m_info += linetext.substr(pos + 4, linetext.find_last_not_of("]") - pos - 3); \
+//    }
 
 #define LRC_LABEL_LEN 7
 char lrc_label[LRC_LABEL_LEN][5] = {
@@ -24,15 +24,15 @@ char lrc_label[LRC_LABEL_LEN][5] = {
 };
 
 string LyricsPlayer::m_info;
-HANDLE LyricsPlayer::m_thEvent;
-HANDLE LyricsPlayer::m_freezeEvent;
-long long LyricsPlayer::m_tmOffset = 0;
+HANDLE LyricsPlayer::m_exitEvent;
+HANDLE LyricsPlayer::m_pauseEvent;
+long long LyricsPlayer::m_tmStartOffset = 0;
 
 LyricsPlayer::LyricsPlayer(void) : m_cbFun(NULL), m_isUTF8(false), m_thLrc(NULL), m_tmStart(0)
     , m_tmPause(0), m_tmDelay(0), m_isPause(FALSE), m_songIndex(0)
 {
-    m_thEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-    m_freezeEvent = CreateEvent(NULL, TRUE, TRUE, NULL);
+    m_exitEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+    m_pauseEvent = CreateEvent(NULL, TRUE, TRUE, NULL);
     InitializeCriticalSection(&m_cs);
 }
 
@@ -42,12 +42,12 @@ LyricsPlayer::~LyricsPlayer(void)
         CloseHandle(m_thLrc);
     }
 
-    if (m_thEvent) {
-        CloseHandle(m_thEvent);
+    if (m_exitEvent) {
+        CloseHandle(m_exitEvent);
     }
 
-    if (m_freezeEvent) {
-        CloseHandle(m_freezeEvent);
+    if (m_pauseEvent) {
+        CloseHandle(m_pauseEvent);
     }
 
     DeleteCriticalSection(&m_cs);
@@ -64,17 +64,21 @@ bool LyricsPlayer::setPlayingSong(const char *strSongName, const char *strAlbum,
     m_title = strSongName;
     m_artist = strArtist;
     m_album = strAlbum;
-    m_tmOffset = lStartTime; //set the start time;
+
+    EnterCriticalSection(&m_cs);
+    m_tmStartOffset = lStartTime; //set the start time;
+    LeaveCriticalSection(&m_cs);
 
     //clear lyrics info
-    ResetEvent(m_freezeEvent);
+    ResetEvent(m_pauseEvent); //pause play 
     m_lrcVec.clear();
     m_info.clear();
     m_isUTF8 = false;
-    m_isPause = FALSE;
+    m_isPause = false;
     m_tmPause = 0;
     m_tmDelay = 0;
     m_curLrcLine = 0;
+    //_InterlockedAdd64(&m_songIndex, 1);
     m_songIndex++;
 
     //load lyrics file
@@ -91,7 +95,7 @@ bool LyricsPlayer::setPlayingSong(const char *strSongName, const char *strAlbum,
             string strErr = "没有找到歌词";
             callClientCb(strErr);
 
-            SetEvent(m_freezeEvent);
+            SetEvent(m_pauseEvent); //resume play
             return false;
         }
     }
@@ -100,7 +104,7 @@ bool LyricsPlayer::setPlayingSong(const char *strSongName, const char *strAlbum,
     m_info = m_artist + " - " + m_title;
     callClientCb(m_info);
 
-    SetEvent(m_freezeEvent);
+    SetEvent(m_pauseEvent); //resume play
 
     //play lyrics
     return startDisplayLrc();
@@ -216,36 +220,40 @@ bool LyricsPlayer::startDisplayLrc()
 {
     DWORD thID;
 
-    if (m_thLrc) {
-        CloseHandle(m_thLrc);
+    if (m_thLrc == NULL) {
+        m_thLrc = CreateThread(NULL, 0, delayFun, this, 0, &thID);
     }
-
-    //创建线程开始播放歌词
-    m_tmStart = gl_lyrics_utils::getCurTime();
-    m_tmOffset = m_tmStart - m_tmOffset; //count the offset time
-    m_thLrc = CreateThread(NULL, 0, delayFun, this, 0, &thID);
 
     if (m_thLrc == INVALID_HANDLE_VALUE) {
+        console::error("[foo_gl_lyrics] create thread failed!\n");
         return false;
     }
+
+    //count the offset time
+    EnterCriticalSection(&m_cs);
+    m_tmStart = gl_lyrics_utils::getCurTime();
+    m_tmStartOffset = m_tmStart - m_tmStartOffset; 
+    LeaveCriticalSection(&m_cs);
 
     return true;
 }
 
 void LyricsPlayer::stopDisplayLrc()
 {
-    //string stopMsg = "播放停止";
-    SetEvent(m_thEvent);
+    ResetEvent(m_pauseEvent); //pause play 
+    m_lrcVec.clear(); //clear all lyrics
+    m_info.clear();
+    m_isUTF8 = false;
+    m_isPause = false;
+    m_tmPause = 0;
+    m_tmDelay = 0;
+    m_curLrcLine = 0;
+    SetEvent(m_pauseEvent); //start play
 
-    if (m_isPause) {
-        m_isPause = FALSE;
-    }
-
-    //WaitForSingleObject(m_thLrc, INFINITE);
-    //callClientCb(stopMsg);
+    callClientCb(" ");
 }
 
-void LyricsPlayer::startPlayAnyTime(unsigned int tmPos)
+void LyricsPlayer::startPlayFromAnyTime(unsigned int tmPos)
 {
     pair<unsigned int, string> lrcElem;
 
@@ -254,8 +262,12 @@ void LyricsPlayer::startPlayAnyTime(unsigned int tmPos)
         lrcElem =  m_lrcVec[i];
         if (lrcElem.first > tmPos) {
             m_curLrcLine = i;
-            m_lrcVec[i - 1].first = tmPos;
-            callClientCb(m_lrcVec[i - 1].second);
+            if (i == 0) {
+                m_lrcVec[0].first = tmPos;
+            } else {
+                m_lrcVec[i - 1].first = tmPos;
+                callClientCb(m_lrcVec[i - 1].second);
+            }
             break;
         }
     }
@@ -272,12 +284,12 @@ void LyricsPlayer::pauseDisplayLrc(bool isPause)
             m_tmPause = gl_lyrics_utils::getCurTime();
             //stop thread here
 
-            ResetEvent(m_freezeEvent);
+            ResetEvent(m_pauseEvent);
         } else {
             m_tmDelay += (gl_lyrics_utils::getCurTime() - m_tmPause);
 
-            startPlayAnyTime(static_cast<unsigned int>(gl_lyrics_utils::getCurTime() - m_tmStart - m_tmDelay));
-            SetEvent(m_freezeEvent);
+            startPlayFromAnyTime(static_cast<unsigned int>(gl_lyrics_utils::getCurTime() - m_tmStart - m_tmDelay));
+            SetEvent(m_pauseEvent);
         }
     }
 }
@@ -290,41 +302,61 @@ DWORD WINAPI LyricsPlayer::delayFun(_In_  LPVOID lpParameter)
         return -1;
     }
 
-    player->callClientCb(m_info);
     pair<unsigned int, string> lrcObj;
-    unsigned int lastTimeStamp = m_tmOffset;
+    unsigned int lastTimeStamp = 0;
     unsigned int delay;
-    unsigned int songIndex = 0;
-    while (player->getNextLrcLine(lrcObj, lastTimeStamp) && WaitForSingleObject(m_thEvent, 0) == WAIT_TIMEOUT) {
+    unsigned int songIndex = 0;//store the song index before thread sleep
+    unsigned int lrcIndex = 0; //store the lyrics index bofore thread sleep
+    while (WaitForSingleObject(m_exitEvent, 0) == WAIT_TIMEOUT) {
         
+        WaitForSingleObject(m_pauseEvent, INFINITE);
+
+        long long offset = player->getFirstStartOffset();
+        if (offset != 0) {
+            player->startPlayFromAnyTime(offset);
+        }
+
+        if (!player->getNextLrcLine(lrcObj, lastTimeStamp)) {
+            continue;
+        }
+
         songIndex = player->getSongIndex();
+        lrcIndex = player->getLrcIndex();
 
         delay = lrcObj.first - lastTimeStamp;
         Sleep(delay);
-        if (WAIT_OBJECT_0 != WaitForSingleObject(m_freezeEvent, 0)) {
-            continue;
-        }
 
 #ifdef _DEBUG
         //log for debug
         console::formatter() << "LRC : " << lrcObj.second.c_str() << "\n";
 #endif
 
+        if (player->isPause()) {
+            continue;
+        }
+
         if (player->getSongIndex() != songIndex) {
 
             //the playing song has been switched when thread is sleeping.
             songIndex = player->getSongIndex();
         } else {
+
+            if (player->getLrcIndex() != lrcIndex) {
+
+                continue;
+            }
+
             player->callClientCb(lrcObj.second);
         }
     }
 
+    console::info("[foo_gl_lyrics] lyrics display thread exited.");
     return 0;
 }
 
 bool LyricsPlayer::getNextLrcLine(pair<unsigned int, string> &lrcObj, unsigned int &lastTimeStamp)
 {
-    if (m_curLrcLine >= m_lrcVec.size()) {
+    if (m_lrcVec.size() == 0 || m_curLrcLine >= m_lrcVec.size()) {
         return false;
     }
 
@@ -397,4 +429,28 @@ void LyricsPlayer::addLrcSentence(unsigned int timeStamp, string &lrc)
 unsigned int LyricsPlayer::getSongIndex()
 {
     return m_songIndex;
+}
+
+unsigned int LyricsPlayer::getLrcIndex()
+{
+    return m_curLrcLine;
+}
+
+
+long long LyricsPlayer::getFirstStartOffset()
+{
+    long long offset;
+    EnterCriticalSection(&m_cs);
+    offset = m_tmStartOffset;
+    if (m_tmStartOffset != 0) {
+        m_tmStartOffset = 0;
+    }
+    LeaveCriticalSection(&m_cs);
+
+    return offset;
+}
+
+bool LyricsPlayer::isPause()
+{
+    return m_isPause;
 }

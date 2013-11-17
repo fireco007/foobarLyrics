@@ -47,7 +47,7 @@ public:
 
     void pauseDisplayLrc(bool isPause);
 
-    void startPlayAnyTime(unsigned int tmPos);
+    void startPlayFromAnyTime(unsigned int tmPos);
 
     /// \brief 设置歌词文件目录
     ///
@@ -95,6 +95,10 @@ public:
     /// \see 无
     bool parseLrc(const string &fileName);
 
+    long long getFirstStartOffset();
+
+    bool isPause();
+
 private:
 
     /// \brief 调用回调函数
@@ -111,7 +115,7 @@ private:
     /// \see 无
     bool getNextLrcLine(pair<unsigned int, string> &lrcObj, unsigned int &lastTimeStamp);
 
-    
+    unsigned int getLrcIndex();
     unsigned int getSongIndex();
 
     /// \brief    歌词定时显示线程函数
@@ -136,7 +140,7 @@ private:
     vector<pair<unsigned int, string>> m_lrcVec; ///< 歌词容器(以行为单位)pair<timestamp, lyrics>
     static string m_info;       ///< 歌词信息(曲目、歌手、专辑、作者)
     LYC_CALLBACK m_cbFun;  ///< 回调函数，用于写回歌词
-    vector<pair<unsigned int, string>>::size_type m_curLrcLine; ///< 当前歌词行数
+    vector<pair<unsigned int, string>>::size_type m_curLrcLine; ///< current lyrics line number
     unsigned int m_songIndex;
 
     typedef vector<pair<unsigned int, string>>::size_type LYCVEC_SIZE;
@@ -146,13 +150,15 @@ private:
     string m_artist; ///< 歌手(艺术家)
     string m_album; ///< 专辑
 
-    static HANDLE m_thEvent; ///< thread stop event 
-    static HANDLE m_freezeEvent; ///< thread stop event 
-    HANDLE m_thLrc; ///< thread
+    static HANDLE m_exitEvent; ///< event fot notify the thread to exit
+    static HANDLE m_pauseEvent; ///< thread pause event
+    HANDLE m_thLrc; ///< thread handle
     CRITICAL_SECTION m_cs;
     bool m_isPause;
 
-    static long long m_tmOffset; //time offset for parse lyrics and download lyrics if required
+    //time offset for parse lyrics and download lyrics if required
+    //when you start to play a new song
+    static long long m_tmStartOffset; 
 
     //used for pause play and resume play 
     long long m_tmStart;

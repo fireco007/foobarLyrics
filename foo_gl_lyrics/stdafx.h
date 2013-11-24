@@ -12,5 +12,4 @@
 
 #include <windowsx.h>
 
-//#define TUTORIAL "Component Tutorial"
-#define APP_TITLE "foobar2000 Lyrics Demo(Excalibur)"
+#define APP_TITLE "foobar2000 Lyrics"

@@ -22,13 +22,12 @@ DECLARE_COMPONENT_VERSION(
 	// component name
 	APP_TITLE,
 	// component version
-	"0.1",
+	"0.2",
 	// about text, use \n to separate multiple lines
 	// If you don't want any about text, set this parameter to NULL.
-	"My OpenGL Lyrics\n"
-	"for foobar2000\n"
+	"OpenGL Lyrics for foobar2000\n"
 	"\n"
-	"contributors:\n"
+	"Author:\n"
     "Excalibur(c04n05@gmail.com)"
 );
 

@@ -146,7 +146,13 @@ HWND CLyricsWindow::Create(HWND p_hWndParent) {
     bb.fEnable = true;
     //bb.hRgnBlur = NULL;
     bb.hRgnBlur = CreateRectRgn(0, 0, -1, -1);
-    DwmEnableBlurBehindWindow(m_wnd, &bb);
+
+    //see Issue #8
+    HRESULT hr = S_OK;
+    hr = DwmEnableBlurBehindWindow(m_wnd, &bb);
+    if (FAILED(hr)) {
+        console::error("foo_gl_lyris : set window transparent failed! please make sure you've enabled Aero.\n");
+    }
 
     return m_wnd;
 }

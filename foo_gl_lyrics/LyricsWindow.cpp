@@ -10,8 +10,9 @@ string CLyricsWindow::m_strLrc;
 
 //The directory for save lyrics files;
 #define LYRICS_PATH ".\\lyrics\\"
-#define WND_WIDTH 1920
-#define WND_HEIGHT 200
+
+//the height of Lyrics display window.
+#define LRCWND_HEIGHT 150 
 
 //add by excalibur
 GLvoid CLyricsWindow::drawScene() 
@@ -131,13 +132,14 @@ void CLyricsWindow::HideWindow() {
 
 HWND CLyricsWindow::Create(HWND p_hWndParent) {
     
+     //the window's width and height will be changed later, so the value can be 0;
 	m_wnd = super::Create(core_api::get_main_window(),
 		TEXT(APP_TITLE),
 
         //add by excalibur
         WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP | WS_VISIBLE /*| WS_CAPTION | WS_SYSMENU*/,
 		WS_EX_TOOLWINDOW,
-		CW_USEDEFAULT, CW_USEDEFAULT, WND_WIDTH, WND_HEIGHT);
+		CW_USEDEFAULT, CW_USEDEFAULT, /*WND_WIDTH*/0, LRCWND_HEIGHT);
 
     //set window transparent(windows Vista and above)
     DWM_BLURBEHIND bb = {0};
@@ -179,18 +181,14 @@ BOOL CLyricsWindow::ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LP
 
             m_hRC = wglCreateContext(m_hDC); 
             wglMakeCurrent(m_hDC, m_hRC); 
-            RECT rect;
-            GetClientRect(hWnd, &rect); 
 
             int width = GetSystemMetrics(SM_CXSCREEN);
             int height = GetSystemMetrics(SM_CYSCREEN);
-            rect.bottom = rect.top + WND_HEIGHT;
-            //rect.top = height;
-            rect.right = rect.left + WND_WIDTH;
-            rect.top = height - rect.bottom;
-            MoveWindow(hWnd, rect.left, rect.top, WND_WIDTH, WND_HEIGHT, TRUE);
 
-            initializeGL(rect.right, rect.bottom); 
+            //modify the window size and position
+            MoveWindow(hWnd, 0, height - LRCWND_HEIGHT, width, LRCWND_HEIGHT, TRUE);
+
+            initializeGL(width, height - LRCWND_HEIGHT);
 
             string strDir = LYRICS_PATH;
             createLRCDir(LYRICS_PATH);

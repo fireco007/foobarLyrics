@@ -131,7 +131,7 @@ void MyGLfont::Show2DText(char *str)
     SelectObject(hDC,hFont);
     int  i=0; 
     int  j=0; 
-    int ich,cch;
+    DWORD ich,cch;
     m_listbase = glGenLists(256);
 
 
@@ -161,7 +161,16 @@ void MyGLfont::Show2DText(char *str)
         { 
             //判断是否为双字节 
             ich=str[i]; 
-            ich=(ich<<8)+256; ////256为汉字内码“偏移量” 
+
+            ich=(ich<<8);
+
+            //see Issue #1
+            //GB2312     0xB0-0xF7(176-247)      0xA0-0xFE(160-254)
+            //GBK        0x81-0xFE(129-254)      0x40-0xFE( 64-254)
+            if ((unsigned char)(str[i + 1]) >= 0xA0) {
+                ich += 256;//256 is the offset of GB2312, actually i'm not sure why this bug exist!
+            }
+
             ich=ich+str[i+1]; 
             i++;i++; 
             wglUseFontOutlines(hDC,//字体轮廓设备联系DC 

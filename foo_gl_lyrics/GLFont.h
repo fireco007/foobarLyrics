@@ -17,7 +17,7 @@ public:
     void SetTextColor(COLORREF textcolor);//字体颜色设置
     void MyCreateFont(char *facename, int height, int weight, bool italic,bool underline,bool strikeout);
     void ShowText(int x, int y, LPCTSTR lpszText);//显示图象2D汉字
-    void Show2DText(char *str);//显示图形2D汉字
+    void Show2DGbkText(char *str);//显示图形2D汉字
     void Show3DText(unsigned char *str);//显示图形3D汉字
 };
 

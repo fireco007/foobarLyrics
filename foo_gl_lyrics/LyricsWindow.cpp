@@ -27,18 +27,10 @@ GLvoid CLyricsWindow::drawScene()
     //移动坐标系
     glTranslatef(-1.5f, 0.0f, -6.0f);
 
-    //绘制三角形
-    //glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
-    //glBegin(GL_TRIANGLES);
-    //glVertex3f(-1.5f, 1.0f, 0.0f);
-    //glVertex3f(-1.0f, -1.0f, 0.0f);
-    //glVertex3f(1.0f, -1.0f, 0.0f);
-    //glEnd();
+    //todo : draw some effect
 
-    //g_font.Show2DText("中二病でも恋がしたい");
-    m_lrcFont.Show2DText((char*)m_strLrc.c_str());
+    m_lrcFont.Show2DGbkText((char*)m_strLrc.c_str());
 
-    //glFlush();
     SwapBuffers(m_hDC);
 }
 

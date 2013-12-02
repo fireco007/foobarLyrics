@@ -60,6 +60,10 @@ static t_font_description get_def_font()
 static const GUID guid_cfg_font = { 0x44983f90, 0x7632, 0x4a3f, { 0x8d, 0x2a, 0xe4, 0x6e, 0x7a, 0xdc, 0x8f, 0x9 } };
 cfg_struct_t<t_font_description> cfg_font(guid_cfg_font, get_def_font());
 
+// Stores the color of font user for drawing lyrics
+static const GUID guid_cfg_font_color = { 0x80875cc4, 0xc24c, 0x4c6b, { 0x99, 0xc7, 0x21, 0x23, 0xc0, 0x3e, 0x79, 0x6c } };
+cfg_uint cfg_font_color(guid_cfg_font_color, 0x0); //set the defualt color to black
+
 /**************************
 Advanced preferences.
 

@@ -25,7 +25,8 @@ GLvoid CLyricsWindow::drawScene()
     glLoadIdentity();
 
     //ÒÆ¶¯×ø±êÏµ
-    glTranslatef(-1.5f, 0.0f, -6.0f);
+    //glTranslatef(/*-1.5f*/-22.5f, 0.0f, -6.0f);
+    glTranslatef(-0.0f, 0.0f, -6.0f);
 
     //todo : draw some effect
 
@@ -68,7 +69,7 @@ GLvoid CLyricsWindow::initializeGL(GLsizei width, GLsizei height)
     //glEnable(GL_BLEND);
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-    m_lrcFont.MyCreateFont("Î¢ÈíÑÅºÚ", 100, 80, 0, 0, true);
+    //m_lrcFont.MyCreateFont("Î¢ÈíÑÅºÚ", 100, 80, 0, 0, true);
     //m_lrcFont.MyCreateFont("ºº±¤°üÊÖ»ú×ÖÌå", 100, 80, 0, 0, true);
     //g_font.CreateFont("Ò¶¸ùÓÑ¾ôËÎÌå", 200, 80, 0, 0, 0);
 } 
@@ -131,7 +132,7 @@ HWND CLyricsWindow::Create(HWND p_hWndParent) {
         //add by excalibur
         WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP | WS_VISIBLE /*| WS_CAPTION | WS_SYSMENU*/,
 		WS_EX_TOOLWINDOW,
-		CW_USEDEFAULT, CW_USEDEFAULT, /*WND_WIDTH*/0, LRCWND_HEIGHT);
+		CW_USEDEFAULT, CW_USEDEFAULT, 0, LRCWND_HEIGHT);
 
     //set window transparent(windows Vista and above)
     DWM_BLURBEHIND bb = {0};
@@ -180,7 +181,7 @@ BOOL CLyricsWindow::ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LP
             //modify the window size and position
             MoveWindow(hWnd, 0, height - LRCWND_HEIGHT, width, LRCWND_HEIGHT, TRUE);
 
-            initializeGL(width, height - LRCWND_HEIGHT);
+            initializeGL(width, LRCWND_HEIGHT);
 
             string strDir = LYRICS_PATH;
             createLRCDir(LYRICS_PATH);
@@ -280,8 +281,10 @@ LRESULT CLyricsWindow::OnCreate(LPCREATESTRUCT pCreateStruct) {
 	// won't do anything.
 	cfg_popup_window_placement.on_window_creation(m_hWnd);
 
-	// Initialize the font.
+	// Initialize the font and font color
 	m_font = cfg_font.get_value().create();
+    m_lrcFont.SetLrcFont(m_font); //change the lyrics font
+    m_lrcFont.SetTextColor(cfg_font_color); //set font's color
 
 	// Acquire a ui_selection_holder that allows us to notify other components
 	// of the selected tracks in our window, when it has the focus.
@@ -440,6 +443,7 @@ void CLyricsWindow::OnContextMenu(HWND hWnd, CPoint point) {
 	enum {
 		// ID for "Choose font..."
 		ID_FONT = 1,
+
 		// The range ID_CONTEXT_FIRST through ID_CONTEXT_LAST is reserved
 		// for menu entries from menu_manager.
 		ID_CONTEXT_FIRST,
@@ -449,8 +453,8 @@ void CLyricsWindow::OnContextMenu(HWND hWnd, CPoint point) {
 	// Create new popup menu.
 	HMENU hMenu = CreatePopupMenu();
 
-	// Add our "Choose font..." command.
-	AppendMenu(hMenu, MF_STRING, ID_FONT, TEXT("Choose font..."));
+	// Add our "Choose font..." and "Choose font color" command.
+	AppendMenu(hMenu, MF_STRING, ID_FONT, TEXT("×ÖÌå"));
 
 	// Get the currently playing track.
 	metadb_handle_list items;
@@ -495,11 +499,54 @@ void CLyricsWindow::OnContextMenu(HWND hWnd, CPoint point) {
 	if (cmd == ID_FONT) {
 		// Show font configuration.
 		t_font_description font = cfg_font;
-		if (font.popup_dialog(m_hWnd)) {
-			cfg_font = font;
-			m_font = font.create();
-			::RedrawWindow(m_hWnd, 0, 0, RDW_INVALIDATE|RDW_UPDATENOW);
-		}
+
+        LOGFONTW lf;
+        memset(&lf, 0, sizeof(LOGFONTW));
+        lf.lfCharSet = font.m_charset;
+
+        //copy font facename (utf8 to unicode-16)
+        int stringSize = MultiByteToWideChar(CP_UTF8, 0, font.m_facename, -1, NULL, 0);
+        WCHAR *wfaceName = new WCHAR[stringSize + 1];
+        memset(wfaceName, 0, stringSize + 1);
+        MultiByteToWideChar(CP_UTF8, 0, font.m_facename, -1, wfaceName, stringSize + 1);
+        wcscpy(lf.lfFaceName, wfaceName);
+        delete wfaceName;
+
+        lf.lfHeight = font.m_height;
+        lf.lfWeight = font.m_weight;
+        lf.lfItalic = font.m_italic;
+
+        CHOOSEFONTW chooseFont;
+        memset(&chooseFont, 0, sizeof(CHOOSEFONTW));
+        chooseFont.rgbColors = cfg_font_color;
+        //chooseFont.hwndOwner = hWnd;
+        chooseFont.lStructSize = sizeof(CHOOSEFONTW);
+        chooseFont.Flags = CF_EFFECTS | CF_INITTOLOGFONTSTRUCT | CF_SCREENFONTS | CF_TTONLY | CF_NOSIZESEL;
+        chooseFont.lpLogFont = &lf;
+        if (ChooseFontW(&chooseFont)) {
+
+            //set color of the font
+            cfg_font_color = chooseFont.rgbColors;
+            m_lrcFont.SetTextColor(chooseFont.rgbColors);
+
+            //didn't support to change the font's size
+            font.m_height = 100;//chooseFont.lpLogFont->lfHeight;
+            font.m_weight = 100;//chooseFont.lpLogFont->lfWeight;
+            font.m_italic = chooseFont.lpLogFont->lfItalic;
+
+            stringSize = WideCharToMultiByte(CP_UTF8, 0, chooseFont.lpLogFont->lfFaceName, -1, NULL, 0, NULL, NULL);
+            char *faceName = new char[stringSize];
+            memset(faceName, 0, (stringSize) * sizeof(char));
+            WideCharToMultiByte(CP_UTF8, 0, chooseFont.lpLogFont->lfFaceName, -1, faceName, stringSize, NULL, NULL);
+            strcpy(font.m_facename, faceName);
+            delete faceName;
+
+            cfg_font = font;
+            m_font = font.create();
+            m_lrcFont.SetLrcFont(m_font);
+            ::RedrawWindow(m_hWnd, 0, 0, RDW_INVALIDATE|RDW_UPDATENOW);
+        }
+
 	} else if (cmd >= ID_CONTEXT_FIRST && cmd <= ID_CONTEXT_LAST ) {
 		// Let the menu_manager execute the chosen command.
 		cmm->execute_by_id(cmd - ID_CONTEXT_FIRST);

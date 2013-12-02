@@ -8,4 +8,6 @@ extern cfg_window_placement cfg_popup_window_placement;
 
 extern cfg_struct_t<t_font_description> cfg_font;
 
+extern cfg_uint cfg_font_color;
+
 extern advconfig_string_factory g_advconfig_string_format;

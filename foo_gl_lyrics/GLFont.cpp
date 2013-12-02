@@ -3,6 +3,9 @@
 MyGLfont::MyGLfont()
 {
     cl=RGB(255,255,255);
+    m_red = 0.0f;
+    m_green = 0.0f;
+    m_blue = 0.0f;
 }
 
 MyGLfont::~MyGLfont()
@@ -14,6 +17,9 @@ MyGLfont::~MyGLfont()
 void MyGLfont::SetTextColor(COLORREF textcolor)//字体颜色设置
 {
     cl=textcolor;
+    m_red = GetRValue(cl) / 255.0;
+    m_green = GetGValue(cl) / 255.0;
+    m_blue = GetBValue(cl) / 255.0;
 }
 
 void MyGLfont::MyCreateFont(char *facename, int height, int weight, bool italic,bool underline,bool strikeout)
@@ -121,6 +127,7 @@ void MyGLfont::ShowText(int x, int y, LPCTSTR lpszText)
 
 void MyGLfont::Show2DGbkText(char *str)
 {
+    float lrcWidth = 0.0f;//the whole length of this lyrics
     char FTextList[255];
     GLYPHMETRICSFLOAT gmf[256];
     int m_iCount=strlen(str);    
@@ -134,11 +141,9 @@ void MyGLfont::Show2DGbkText(char *str)
     DWORD ich,cch;
     m_listbase = glGenLists(256);
 
-    glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
-    while(i<m_iCount)
-    {
-       if(IsDBCSLeadByte(str[i]))
-        { 
+    glColor4f(m_red, m_green, m_blue, 1.0f);
+    while(i < m_iCount) {
+       if(IsDBCSLeadByte(str[i])) { 
             //判断是否为双字节 
             ich=str[i]; 
 
@@ -161,12 +166,7 @@ void MyGLfont::Show2DGbkText(char *str)
                 0,//0.15f, //在Z轴负方向的值 
                 WGL_FONT_POLYGONS, //指定显示列表线段或多边形 
                 &gmf[j]); //接受字符的地址 
-            FTextList[j]=j; 
-            j++; 
-
-        }
-        else
-        { 
+        } else { 
             cch=str[i]; 
             i++; 
             wglUseFontOutlines(hDC, //字体轮廓设备联系DC 
@@ -177,10 +177,16 @@ void MyGLfont::Show2DGbkText(char *str)
                 0.0,//0.15f,//在Z轴负方向的值 
                 WGL_FONT_POLYGONS, //指定显示列表线段或多边形 
                 &gmf[j]);//接受字符的地址 
-            FTextList[j]=j;
-            j++;
         } 
+
+       //count the length of this word
+       lrcWidth += (gmf[j].gmfBlackBoxX + gmf[j].gmfCellIncX);
+       FTextList[j]=j; 
+       j++; 
     } 
+    //lrcWidth : 45
+    //glLoadIdentity(); 
+    //glTranslatef(-(lrcWidth / 2 - 22.5f), 0.0f, -6.0f);
 
     glPushAttrib(GL_LIST_BIT);
     {
@@ -219,4 +225,10 @@ void MyGLfont::Show3DText(unsigned char *str)
     }
     glPopMatrix();
     glColor3f(1.0,1.0,1.0);
+}
+
+
+void MyGLfont::SetLrcFont(HFONT f)
+{
+    hFont = f;
 }

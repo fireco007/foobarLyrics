@@ -128,10 +128,8 @@ HWND CLyricsWindow::Create(HWND p_hWndParent) {
      //the window's width and height will be changed later, so the value can be 0;
 	m_wnd = super::Create(core_api::get_main_window(),
 		TEXT(APP_TITLE),
-
-        //add by excalibur
         WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP | WS_VISIBLE /*| WS_CAPTION | WS_SYSMENU*/,
-		WS_EX_TOOLWINDOW,
+		WS_EX_TOOLWINDOW | WS_EX_TOPMOST,//set lyrics window always on top
 		CW_USEDEFAULT, CW_USEDEFAULT, 0, LRCWND_HEIGHT);
 
     //set window transparent(windows Vista and above)
@@ -239,7 +237,6 @@ BOOL CLyricsWindow::ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LP
 			lResult = 0;
 			return TRUE;
 		}
-
 	case WM_CONTEXTMENU:
 		{
 			OnContextMenu((HWND)wParam, CPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)));
@@ -344,6 +341,8 @@ void CLyricsWindow::OnLButtonDown(UINT nFlags, CPoint point) {
 
 		// ...detect a drag operation.
 		if (DragDetect(m_hWnd, pt)) {
+
+            console::info("drag & drop action test\n");
 			metadb_handle_list items;
 			items.add_item(handle);
 
@@ -443,6 +442,7 @@ void CLyricsWindow::OnContextMenu(HWND hWnd, CPoint point) {
 	enum {
 		// ID for "Choose font..."
 		ID_FONT = 1,
+        ID_EXIT_LYRICS = 2,// exit lyrics display
 
 		// The range ID_CONTEXT_FIRST through ID_CONTEXT_LAST is reserved
 		// for menu entries from menu_manager.
@@ -455,6 +455,7 @@ void CLyricsWindow::OnContextMenu(HWND hWnd, CPoint point) {
 
 	// Add our "Choose font..." and "Choose font color" command.
 	AppendMenu(hMenu, MF_STRING, ID_FONT, TEXT("×ÖÌå"));
+    AppendMenu(hMenu, MF_STRING, ID_EXIT_LYRICS, TEXT("ÍË³ö¸è´ÊÏÔÊ¾"));
 
 	// Get the currently playing track.
 	metadb_handle_list items;
@@ -547,7 +548,10 @@ void CLyricsWindow::OnContextMenu(HWND hWnd, CPoint point) {
             ::RedrawWindow(m_hWnd, 0, 0, RDW_INVALIDATE|RDW_UPDATENOW);
         }
 
-	} else if (cmd >= ID_CONTEXT_FIRST && cmd <= ID_CONTEXT_LAST ) {
+	} 
+    if (cmd == ID_EXIT_LYRICS) {
+        ::SendMessage(m_wnd, WM_CLOSE, NULL, NULL);
+    } else if (cmd >= ID_CONTEXT_FIRST && cmd <= ID_CONTEXT_LAST ) {
 		// Let the menu_manager execute the chosen command.
 		cmm->execute_by_id(cmd - ID_CONTEXT_FIRST);
 	}

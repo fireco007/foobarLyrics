@@ -45,7 +45,7 @@ public:
 	void OnDestroy();
 	void OnClose();
 	void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
-	void OnLButtonDown(UINT nFlags, CPoint point);
+	//void OnLButtonDown(UINT nFlags, CPoint point);
 	void OnContextMenu(HWND hWnd, CPoint point);
 	void OnSetFocus(HWND hWndOld);
 	void OnPaint(HDC hdc);
@@ -142,4 +142,6 @@ private:
     HDC m_hDC; ///< 本窗口的DC 
     HGLRC m_hRC; ///< OpenGL context
     MyGLfont m_lrcFont;  ///< 歌词字体
+
+    POINT m_dragStart; // for lyrics window drag&drop
 };

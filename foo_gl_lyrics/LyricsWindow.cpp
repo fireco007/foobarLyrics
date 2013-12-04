@@ -153,7 +153,7 @@ HWND CLyricsWindow::Create(HWND p_hWndParent) {
 void CLyricsWindow::displayLrcCallback(const string &strLrc)
 {
     m_strLrc = strLrc;
-    
+
     InvalidateRect(m_wnd, NULL, TRUE);
 }
 
@@ -233,10 +233,34 @@ BOOL CLyricsWindow::ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LP
 
 	case WM_LBUTTONDOWN:
 		{
-			OnLButtonDown(wParam, CPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)));
-			lResult = 0;
+            POINT pt;
+            GetCursorPos(&pt);
+
+            // ...detect a drag operation.
+            if (DragDetect(m_hWnd, pt)) {
+                m_dragStart = pt;
+                ::SetCapture(m_wnd);
+            }
+
+            lResult = 0;
 			return TRUE;
 		}
+    case WM_LBUTTONUP:
+        {
+            if (::GetCapture() == m_wnd) {
+                ::ReleaseCapture();
+
+                RECT rect;
+                GetWindowRect(m_wnd, &rect);
+
+                int xMoveTo = rect.left + GET_X_LPARAM(lParam) - (m_dragStart.x - rect.left);
+                int yMoveTo = rect.top + GET_Y_LPARAM(lParam) - (m_dragStart.y - rect.top);
+                MoveWindow(m_wnd, xMoveTo, yMoveTo, 
+                    rect.right - rect.left, rect.bottom - rect.top, FALSE);
+            }
+            lResult = 0;
+            return TRUE;
+        }
 	case WM_CONTEXTMENU:
 		{
 			OnContextMenu((HWND)wParam, CPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)));
@@ -301,6 +325,9 @@ LRESULT CLyricsWindow::OnCreate(LPCREATESTRUCT pCreateStruct) {
         flag_on_playback_seek,
 		false);
 
+    m_dragStart.x = 0;
+    m_dragStart.y = 0;
+
 	return 0;
 }
 
@@ -326,42 +353,6 @@ void CLyricsWindow::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags) {
 	if (nChar == VK_ESCAPE) {
 		// Hide and disable the window.
 		HideWindow();
-	}
-}
-
-void CLyricsWindow::OnLButtonDown(UINT nFlags, CPoint point) {
-	// Get currently playing track.
-	static_api_ptr_t<play_control> pc;
-	metadb_handle_ptr handle;
-
-	// If some track is playing...
-	if (pc->get_now_playing(handle)) {
-		POINT pt;
-		GetCursorPos(&pt);
-
-		// ...detect a drag operation.
-		if (DragDetect(m_hWnd, pt)) {
-
-            console::info("drag & drop action test\n");
-			metadb_handle_list items;
-			items.add_item(handle);
-
-			// Create an IDataObject that contains the dragged track.
-			static_api_ptr_t<playlist_incoming_item_filter> piif;
-			// create_dataobject_ex() returns a smart pointer unlike create_dataobject()
-			// which returns a raw COM pointer. The less chance we have to accidentally
-			// get the reference counting wrong, the better.
-			pfc::com_ptr_t<IDataObject> pDataObject = piif->create_dataobject_ex(items);
-
-			// Create an IDropSource.
-			// The constructor of IDropSource_tutorial1 is hidden by design; we use the
-			// provided factory method which returns a smart pointer.
-			pfc::com_ptr_t<IDropSource> pDropSource = IDropSource_tutorial1::g_create(m_hWnd);
-
-			DWORD effect;
-			// Perform drag&drop operation.
-			DoDragDrop(pDataObject.get_ptr(), pDropSource.get_ptr(), DROPEFFECT_COPY, &effect);
-		}
 	}
 }
 

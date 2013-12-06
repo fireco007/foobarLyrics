@@ -67,6 +67,7 @@ GLvoid CLyricsWindow::initializeGL(GLsizei width, GLsizei height)
     glMatrixMode( GL_MODELVIEW ); 
 
     //glEnable(GL_BLEND);
+    glDisable(GL_BLEND);
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
     //m_lrcFont.MyCreateFont("Î¢ÈíÑÅºÚ", 100, 80, 0, 0, true);
@@ -523,7 +524,7 @@ void CLyricsWindow::OnContextMenu(HWND hWnd, CPoint point) {
 
             //didn't support to change the font's size
             font.m_height = 100;//chooseFont.lpLogFont->lfHeight;
-            font.m_weight = 100;//chooseFont.lpLogFont->lfWeight;
+            font.m_weight = chooseFont.lpLogFont->lfWeight;
             font.m_italic = chooseFont.lpLogFont->lfItalic;
 
             stringSize = WideCharToMultiByte(CP_UTF8, 0, chooseFont.lpLogFont->lfFaceName, -1, NULL, 0, NULL, NULL);

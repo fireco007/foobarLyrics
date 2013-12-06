@@ -163,7 +163,7 @@ void MyGLfont::Show2DGbkText(char *str)
                 1, //要转换为显示列表的字符数 
                 m_listbase+j,//显示列表的基数 
                 0.0f, //指定与实际轮廓的最大偏移量 
-                0.0f,//0.15f 在Z轴负方向的值 
+                0.1f,//0.15f 在Z轴负方向的值 
                 WGL_FONT_POLYGONS, //指定显示列表线段或多边形 
                 &gmf[j]); //接受字符的地址 
         } else { 
@@ -174,7 +174,7 @@ void MyGLfont::Show2DGbkText(char *str)
                 1,//要转换为显示列表的字符数 
                 m_listbase+j,//显示列表的基数 
                 0.0f,//指定与实际轮廓的最大偏移量 
-                0.0f,//在Z轴负方向的值 
+                0.1f,//在Z轴负方向的值 
                 WGL_FONT_POLYGONS, //指定显示列表线段或多边形 
                 &gmf[j]);//接受字符的地址 
         } 

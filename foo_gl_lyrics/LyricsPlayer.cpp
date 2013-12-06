@@ -326,11 +326,6 @@ DWORD WINAPI LyricsPlayer::delayFun(_In_  LPVOID lpParameter)
         delay = lrcObj.first - lastTimeStamp;
         Sleep(delay);
 
-#ifdef _DEBUG
-        //log for debug
-        //console::formatter() << "LRC : " << lrcObj.second.c_str() << "\n";
-#endif
-
         if (player->isPause()) {
             continue;
         }

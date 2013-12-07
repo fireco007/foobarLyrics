@@ -78,6 +78,7 @@ bool LyricsPlayer::setPlayingSong(const char *strSongName, const char *strAlbum,
     m_tmPause = 0;
     m_tmDelay = 0;
     m_curLrcLine = 0;
+    m_tmStart = 0;
     //_InterlockedAdd64(&m_songIndex, 1);
     m_songIndex++;
 
@@ -139,12 +140,15 @@ bool LyricsPlayer::parseLrc(const string &fileName)
         string line;
         getline(file, line);
 
-        if (line.length() < 1) {
+        if (line.empty() || line.length() < 1) {
+
+            //empty line
             continue;
         }
 
         string::size_type pos;
 
+        //we don't care about the non lyrics lines now.
         for (int i = 0; i < LRC_LABEL_LEN; i++) {
             if ((pos = line.find(lrc_label[i])) != string::npos) {
                 bIsLabel = true;
@@ -157,7 +161,7 @@ bool LyricsPlayer::parseLrc(const string &fileName)
             continue;
         }
 
-        //解析时间
+        //parse time
         pos = line.find_first_of("[");
         string::size_type timeEndPos = line.find_first_of("]");
         string strTime = line.substr(pos + 1, timeEndPos - pos - 1);
@@ -170,7 +174,7 @@ bool LyricsPlayer::parseLrc(const string &fileName)
         memcpy(time, strTime.c_str() + 6, 2); //get ms
         int ms = atoi(time);
 
-        unsigned int timeStamp = ms + mins * 60 * 1000 + secs * 1000; //计算毫秒
+        unsigned int timeStamp = ms + mins * 60 * 1000 + secs * 1000; //count ms
 
         //support multi time stamp in one line
   
@@ -194,8 +198,10 @@ bool LyricsPlayer::parseLrc(const string &fileName)
             line = line.substr(timeEndPos + 1);
         }
 
-        if (line.empty() || line.length() == 0 || line.compare(" ") == 0) {
-            continue;
+        if (line.empty() || line.length() == 0) {
+
+            //insert space at empty lyrics line 
+            line = " ";
         }
 
         //check utf8
@@ -228,12 +234,6 @@ bool LyricsPlayer::startDisplayLrc()
         console::error("[foo_gl_lyrics] create thread failed!\n");
         return false;
     }
-
-    //count the offset time
-    EnterCriticalSection(&m_cs);
-    m_tmStart = gl_lyrics_utils::getCurTime();
-    m_tmStartOffset = m_tmStart - m_tmStartOffset; 
-    LeaveCriticalSection(&m_cs);
 
     return true;
 }
@@ -311,9 +311,11 @@ DWORD WINAPI LyricsPlayer::delayFun(_In_  LPVOID lpParameter)
         
         WaitForSingleObject(m_pauseEvent, INFINITE);
 
+        //offset = the time of call this display lyrics thread
+        // minus the time of call function on_playback_new_track
         long long offset = player->getFirstStartOffset();
         if (offset != 0) {
-            player->startPlayFromAnyTime(offset);
+            player->startPlayFromAnyTime(static_cast<unsigned int>(offset));
         }
 
         if (!player->getNextLrcLine(lrcObj, lastTimeStamp)) {
@@ -330,17 +332,20 @@ DWORD WINAPI LyricsPlayer::delayFun(_In_  LPVOID lpParameter)
             continue;
         }
 
+        //check if the now playing song index or lyrics index has been changed when thread sleeping
         if (player->getSongIndex() != songIndex) {
 
-            //the playing song has been switched when thread is sleeping.
+            //the now playing song index has been changed when thread is sleeping.
             songIndex = player->getSongIndex();
         } else {
 
             if (player->getLrcIndex() != lrcIndex) {
 
+                //the now playing lyrics index has been changed when thread is sleeping
                 continue;
             }
 
+            //display lyrics
             player->callClientCb(lrcObj.second);
         }
     }
@@ -434,12 +439,15 @@ unsigned int LyricsPlayer::getLrcIndex()
 
 long long LyricsPlayer::getFirstStartOffset()
 {
-    long long offset;
+    long long offset = 0;
     EnterCriticalSection(&m_cs);
-    offset = m_tmStartOffset;
-    if (m_tmStartOffset != 0) {
-        m_tmStartOffset = 0;
+
+    if (m_tmStart == 0) {
+        //count the offset time
+        m_tmStart = gl_lyrics_utils::getCurTime();
+        offset = m_tmStart - m_tmStartOffset; 
     }
+
     LeaveCriticalSection(&m_cs);
 
     return offset;

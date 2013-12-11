@@ -186,6 +186,16 @@ void MyGLfont::Show2DGbkText(char *str)
     } 
 
     //total lengh of lyrics window is : 45 (why?)
+    //2013-12-11: ok, i've find out this
+    /* 
+        fovy = 45 //see gluPerspective( 45.0, aspect, 3.0, 7.0 ); in CLyricsWindow::initializeGL()
+        6 : (h/2) = 1 : tan(fovy/2)
+        ==> 6 * tan(fovy/2) = h/2
+        ==> h = 2 * 6 * tan(fovy/2) = 2 * 6 * 0.414 = 4.968
+        ==> w : h = aspect 
+        ==> w =  aspect * h = 1366 / 150 * 4.968 = 45.24192
+    */
+
     glLoadIdentity(); 
     if ((lrcWidth - 45.0) > 0.000001f) {
 

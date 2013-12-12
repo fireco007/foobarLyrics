@@ -185,27 +185,19 @@ void MyGLfont::Show2DGbkText(char *str)
        j++; 
     } 
 
-    //total lengh of lyrics window is : 45 (why?)
-    //2013-12-11: ok, i've find out this
-    /* 
-        fovy = 45 //see gluPerspective( 45.0, aspect, 3.0, 7.0 ); in CLyricsWindow::initializeGL()
-        6 : (h/2) = 1 : tan(fovy/2)
-        ==> 6 * tan(fovy/2) = h/2
-        ==> h = 2 * 6 * tan(fovy/2) = 2 * 6 * 0.414 = 4.968
-        ==> w : h = aspect 
-        ==> w =  aspect * h = 1366 / 150 * 4.968 = 45.24192
-    */
+    //set the Z coordinate for the font display in the middle of the front and back
+    GLfloat fontZCoor = (m_front + m_back) / 2; 
 
     glLoadIdentity(); 
     if ((lrcWidth - m_width) > 0.000001f) {
 
         //the length of the lyrics is longer than lyrics display window
         //we just set the lyrics align left
-        glTranslatef(-(m_width / m_front * 5) / 2, 0.0f, -5.0f);
+        glTranslatef(-(m_width / m_front * fontZCoor) / 2, 0.0f, -fontZCoor);
     } else {
 
         //set the lyrics align center
-        glTranslatef(-(lrcWidth / 2), 0.0f, -5.0f);
+        glTranslatef(-(lrcWidth / 2), 0.0f, -fontZCoor);
     }
 
     glPushAttrib(GL_LIST_BIT);

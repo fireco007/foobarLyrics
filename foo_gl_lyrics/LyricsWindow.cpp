@@ -15,7 +15,13 @@ string CLyricsWindow::m_strLrc;
 //the height of Lyrics display window.
 #define LRCWND_HEIGHT 150 
 
-//add by excalibur
+//for perspective projection
+#define PI 3.1415926f 
+#define VIEW_FRONT 3.0f // the near position in Z
+#define VIEW_BACK 7.0f // the far position in Z
+#define VIEW_ANGLE 45.0f
+#define VIEW_DEGREE (VIEW_ANGLE * PI / 180.0f)
+
 GLvoid CLyricsWindow::drawScene() 
 { 
     //清除屏幕和深度缓存
@@ -27,7 +33,7 @@ GLvoid CLyricsWindow::drawScene()
 
     //移动坐标系
     //glTranslatef(/*-1.5f*/-22.5f, 0.0f, -6.0f);
-    glTranslatef(-0.0f, 0.0f, -6.0f);
+    //glTranslatef(-0.0f, 0.0f, -6.0f);
 
     //todo : draw some effect
 
@@ -47,31 +53,36 @@ GLvoid CLyricsWindow::resizeWindow(GLsizei width, GLsizei height)
 
     glMatrixMode( GL_PROJECTION ); 
     glLoadIdentity(); 
-    gluPerspective( 45.0, aspect, 3.0, 7.0 ); 
+    gluPerspective(VIEW_ANGLE, aspect, VIEW_FRONT, VIEW_BACK); 
     glMatrixMode( GL_MODELVIEW ); 
 } 
 
 GLvoid CLyricsWindow::initializeGL(GLsizei width, GLsizei height) 
-{ 
-    GLfloat aspect;
-    GLfloat fZFront = 3.0f; // the near position in Z
-    GLfloat fZBack = 7.0f; // the far position in Z
-    GLfloat fViewDegree = 45.0f * 3.1415926f / 180.0f;
-    
+{    
     //glClearIndex( (GLfloat)BLACK_INDEX); 
     glClearDepth( 1.0 ); 
 
     glEnable(GL_DEPTH_TEST); 
 
     glMatrixMode( GL_PROJECTION ); 
-    aspect = (GLfloat) width / height; 
-    gluPerspective( fViewDegree, aspect, fZFront, fZBack ); 
+    GLfloat aspect = (GLfloat) width / height; 
+    gluPerspective(VIEW_ANGLE, aspect, VIEW_FRONT, VIEW_BACK); 
     glMatrixMode( GL_MODELVIEW ); 
 
+    //2013-12-11: ok, i've find out this
+    /* 
+        //see gluPerspective( 45.0, aspect, 3.0, 7.0 ); in CLyricsWindow::initializeGL()
+        6 : (h/2) = 1 : tan(fovy/2)
+        ==> 6 * tan(fovy/2) = h/2
+        ==> h = 2 * 6 * tan(fovy/2) = 2 * 6 * 0.414 = 4.968
+        ==> w : h = aspect 
+        ==> w =  aspect * h = 1366 / 150 * 4.968 = 45.24192
+    */
+
     //set area of lyrics display
-    float fHeight = 2 * fZFront * tan(fViewDegree / 2);
+    float fHeight = 2 * VIEW_FRONT * tan(VIEW_DEGREE / 2);
     float fWidth = aspect * fHeight;
-    m_lrcFont.SetArea(fWidth, fHeight, fZFront, fZBack);
+    m_lrcFont.SetArea(fWidth, fHeight, VIEW_FRONT, VIEW_BACK);
 
     //glEnable(GL_BLEND);
     glDisable(GL_BLEND);

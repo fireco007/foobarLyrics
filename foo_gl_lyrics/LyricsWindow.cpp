@@ -1,3 +1,4 @@
+#include <math.h>
 #include "stdafx.h"
 #include "LyricsWindow.h"
 #include "DropSourceImpl.h"
@@ -53,9 +54,10 @@ GLvoid CLyricsWindow::resizeWindow(GLsizei width, GLsizei height)
 GLvoid CLyricsWindow::initializeGL(GLsizei width, GLsizei height) 
 { 
     GLfloat aspect;
-    //GLfloat     maxObjectSize, aspect; 
-    //GLdouble    near_plane, far_plane; 
-
+    GLfloat fZFront = 3.0f; // the near position in Z
+    GLfloat fZBack = 7.0f; // the far position in Z
+    GLfloat fViewDegree = 45.0f * 3.1415926f / 180.0f;
+    
     //glClearIndex( (GLfloat)BLACK_INDEX); 
     glClearDepth( 1.0 ); 
 
@@ -63,16 +65,17 @@ GLvoid CLyricsWindow::initializeGL(GLsizei width, GLsizei height)
 
     glMatrixMode( GL_PROJECTION ); 
     aspect = (GLfloat) width / height; 
-    gluPerspective( 45.0, aspect, 3.0, 7.0 ); 
+    gluPerspective( fViewDegree, aspect, fZFront, fZBack ); 
     glMatrixMode( GL_MODELVIEW ); 
+
+    //set area of lyrics display
+    float fHeight = 2 * fZFront * tan(fViewDegree / 2);
+    float fWidth = aspect * fHeight;
+    m_lrcFont.SetArea(fWidth, fHeight, fZFront, fZBack);
 
     //glEnable(GL_BLEND);
     glDisable(GL_BLEND);
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-
-    //m_lrcFont.MyCreateFont("Î¢ÈíÑÅºÚ", 100, 80, 0, 0, true);
-    //m_lrcFont.MyCreateFont("ºº±¤°üÊÖ»ú×ÖÌå", 100, 80, 0, 0, true);
-    //g_font.CreateFont("Ò¶¸ùÓÑ¾ôËÎÌå", 200, 80, 0, 0, 0);
 } 
 
 BOOL CLyricsWindow::bSetupPixelFormat(HDC hdc) 

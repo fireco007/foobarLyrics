@@ -21,11 +21,16 @@ public:
     void ShowText(int x, int y, LPCTSTR lpszText);//显示图象2D汉字
     void Show2DGbkText(char *str);//显示图形2D汉字
     void Show3DText(unsigned char *str);//显示图形3D汉字
+    void SetArea(float width, float height, float front, float back);
 
 private:
     float m_red;
     float m_green;
     float m_blue;
+    float m_width;//宽度(世界坐标系，非窗口)
+    float m_height;//高度(世界坐标系, 非窗口)
+    float m_front;
+    float m_back;
 };
 
 #endif

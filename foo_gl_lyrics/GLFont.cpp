@@ -163,7 +163,7 @@ void MyGLfont::Show2DGbkText(char *str)
                 1, //要转换为显示列表的字符数 
                 m_listbase+j,//显示列表的基数 
                 0.0f, //指定与实际轮廓的最大偏移量 
-                0.1f,//0.15f 在Z轴负方向的值 
+                0.0f,//0.15f 在Z轴负方向的值 
                 WGL_FONT_POLYGONS, //指定显示列表线段或多边形 
                 &gmf[j]); //接受字符的地址 
         } else { 
@@ -174,7 +174,7 @@ void MyGLfont::Show2DGbkText(char *str)
                 1,//要转换为显示列表的字符数 
                 m_listbase+j,//显示列表的基数 
                 0.0f,//指定与实际轮廓的最大偏移量 
-                0.1f,//在Z轴负方向的值 
+                0.0f,//在Z轴负方向的值 
                 WGL_FONT_POLYGONS, //指定显示列表线段或多边形 
                 &gmf[j]);//接受字符的地址 
         } 
@@ -197,15 +197,15 @@ void MyGLfont::Show2DGbkText(char *str)
     */
 
     glLoadIdentity(); 
-    if ((lrcWidth - 45.0) > 0.000001f) {
+    if ((lrcWidth - m_width) > 0.000001f) {
 
         //the length of the lyrics is longer than lyrics display window
         //we just set the lyrics align left
-        glTranslatef(-22.5f, 0.0f, -6.0f);
+        glTranslatef(-(m_width / m_front * 5) / 2, 0.0f, -5.0f);
     } else {
-        
+
         //set the lyrics align center
-        glTranslatef(-(lrcWidth / 2), 0.0f, -6.0f);
+        glTranslatef(-(lrcWidth / 2), 0.0f, -5.0f);
     }
 
     glPushAttrib(GL_LIST_BIT);
@@ -215,6 +215,14 @@ void MyGLfont::Show2DGbkText(char *str)
     }
     glPopAttrib();
     glPopMatrix();
+}
+
+void MyGLfont::SetArea(float width, float height, float front, float back)
+{
+    m_width = width;
+    m_height = height;
+    m_front = front;
+    m_back = back;
 }
 
 void MyGLfont::Show3DText(unsigned char *str)

@@ -186,14 +186,17 @@ void MyGLfont::Show2DGbkText(char *str)
     } 
 
     //set the Z coordinate for the font display in the middle of the front and back
-    GLfloat fontZCoor = (m_front + m_back) / 2; 
+    GLfloat fontZCoor = (m_front + m_back) / 2;
+
+    //the width of the area in opengl space
+    GLfloat areaWidth = m_width / m_front * fontZCoor;
 
     glLoadIdentity(); 
-    if ((lrcWidth - m_width) > 0.000001f) {
+    if ((lrcWidth - areaWidth) > 0.000001f) {
 
         //the length of the lyrics is longer than lyrics display window
         //we just set the lyrics align left
-        glTranslatef(-(m_width / m_front * fontZCoor) / 2, 0.0f, -fontZCoor);
+        glTranslatef(-(areaWidth) / 2, 0.0f, -fontZCoor);
     } else {
 
         //set the lyrics align center

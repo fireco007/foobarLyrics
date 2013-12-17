@@ -24,9 +24,9 @@ public:
     void SetArea(float width, float height, float front, float back);
 
 private:
-    float m_red;
-    float m_green;
-    float m_blue;
+    unsigned char m_red;
+    unsigned char m_green;
+    unsigned char m_blue;
     float m_width;//宽度(世界坐标系，非窗口)
     float m_height;//高度(世界坐标系, 非窗口)
     float m_front;

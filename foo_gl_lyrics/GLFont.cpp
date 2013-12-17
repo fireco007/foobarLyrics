@@ -17,9 +17,9 @@ MyGLfont::~MyGLfont()
 void MyGLfont::SetTextColor(COLORREF textcolor)//字体颜色设置
 {
     cl=textcolor;
-    m_red = GetRValue(cl) / 255.0;
-    m_green = GetGValue(cl) / 255.0;
-    m_blue = GetBValue(cl) / 255.0;
+    m_red = GetRValue(cl);
+    m_green = GetGValue(cl);
+    m_blue = GetBValue(cl);
 }
 
 void MyGLfont::MyCreateFont(char *facename, int height, int weight, bool italic,bool underline,bool strikeout)
@@ -141,7 +141,7 @@ void MyGLfont::Show2DGbkText(char *str)
     DWORD ich,cch;
     m_listbase = glGenLists(256);
 
-    glColor4f(m_red, m_green, m_blue, 1.0f);
+    glColor4ub(m_red, m_green, m_blue, 255);
     while(i < m_iCount) {
        if(IsDBCSLeadByte(str[i])) { 
             //判断是否为双字节 

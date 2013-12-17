@@ -8,6 +8,7 @@
 #include <GL/glu.h> 
 #include "GLFont.h"
 #include "LyricsPlayer.h"
+#include "SakuraParticle.h"
 
 //You have to preinstall Windows SDK or else you can't get the OpenGL32.lib and glu32.lib
 #pragma comment(lib, "OpenGL32.lib")
@@ -144,4 +145,6 @@ private:
     MyGLfont m_lrcFont;  ///< ¸è´Ê×ÖÌå
 
     POINT m_dragStart; // for lyrics window drag&drop
+
+    SakuraParticle *m_sakuraParticles;
 };

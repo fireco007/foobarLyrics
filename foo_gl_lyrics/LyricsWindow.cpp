@@ -31,12 +31,13 @@ GLvoid CLyricsWindow::drawScene()
 
     glLoadIdentity();
 
-    //ÒÆ¶¯×ø±êÏµ
-    //glTranslatef(/*-1.5f*/-22.5f, 0.0f, -6.0f);
-    //glTranslatef(-0.0f, 0.0f, -6.0f);
+    glEnable(GL_ALPHA_TEST);
+    //glAlphaFunc(GL_GREATER, 0.9);
+    glEnable(GL_TEXTURE_2D);
+    m_sakuraParticles->drawParticles();
 
-    //todo : draw some effect
-
+    glDisable(GL_ALPHA_TEST);
+    glDisable(GL_TEXTURE_2D);
     m_lrcFont.Show2DGbkText((char*)m_strLrc.c_str());
 
     SwapBuffers(m_hDC);
@@ -83,10 +84,13 @@ GLvoid CLyricsWindow::initializeGL(GLsizei width, GLsizei height)
     float fHeight = 2 * VIEW_FRONT * tan(VIEW_DEGREE / 2);
     float fWidth = aspect * fHeight;
     m_lrcFont.SetArea(fWidth, fHeight, VIEW_FRONT, VIEW_BACK);
+    m_sakuraParticles = SakuraParticle::getInstance();
+    m_sakuraParticles->setRect(fWidth / 3.0f * 5.0f, fHeight / 3.0f * 5.0f, VIEW_FRONT, VIEW_BACK);
 
-    //glEnable(GL_BLEND);
-    glDisable(GL_BLEND);
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glEnable(GL_BLEND);
+    glShadeModel(GL_SMOOTH);
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_GREATER, 0.09f);
 } 
 
 BOOL CLyricsWindow::bSetupPixelFormat(HDC hdc) 
@@ -128,6 +132,7 @@ void CLyricsWindow::ShowWindow() {
 	if (!g_instance.IsWindow()) {
 		cfg_enabled = (g_instance.Create(core_api::get_main_window()) != NULL);
 	}
+    
 }
 
 void CLyricsWindow::HideWindow() {
@@ -161,6 +166,8 @@ HWND CLyricsWindow::Create(HWND p_hWndParent) {
     if (FAILED(hr)) {
         console::error("foo_gl_lyris : set window transparent failed! please make sure you've enabled Aero.\n");
     }
+
+    m_sakuraParticles->startDisplay(m_wnd);
 
     return m_wnd;
 }
@@ -223,6 +230,8 @@ BOOL CLyricsWindow::ProcessWindowMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LP
                 wglDeleteContext(m_hRC);
             }
             
+            m_sakuraParticles->destroyInstance();
+
 			return TRUE;
 		}
 

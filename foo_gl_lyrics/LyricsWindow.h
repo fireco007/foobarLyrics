@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <GL/gl.h> 
 #include <GL/glu.h> 
-#include "GLFont.h"
+#include "LyricsText.h"
 #include "LyricsPlayer.h"
 #include "SakuraParticle.h"
 
@@ -142,7 +142,7 @@ private:
     static string m_strLrc; ///< ¸è´Ê
     HDC m_hDC; ///< ±¾´°¿ÚµÄDC 
     HGLRC m_hRC; ///< OpenGL context
-    MyGLfont m_lrcFont;  ///< ¸è´Ê×ÖÌå
+    LyricsText m_lrcText;  ///< ¸è´Ê×ÖÌå
 
     POINT m_dragStart; // for lyrics window drag&drop
 

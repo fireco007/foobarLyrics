@@ -1,6 +1,6 @@
-#include "GLFont.h"
+#include "LyricsText.h"
 
-MyGLfont::MyGLfont()
+LyricsText::LyricsText()
 {
     cl=RGB(255,255,255);
     m_red = 0.0f;
@@ -8,13 +8,13 @@ MyGLfont::MyGLfont()
     m_blue = 0.0f;
 }
 
-MyGLfont::~MyGLfont()
+LyricsText::~LyricsText()
 {
     if(hFont) DeleteObject(hFont);
 }
 
 //只有关闭光照和纹理才能正确显示颜色
-void MyGLfont::SetTextColor(COLORREF textcolor)//字体颜色设置
+void LyricsText::SetTextColor(COLORREF textcolor)//字体颜色设置
 {
     cl=textcolor;
     m_red = GetRValue(cl);
@@ -22,7 +22,7 @@ void MyGLfont::SetTextColor(COLORREF textcolor)//字体颜色设置
     m_blue = GetBValue(cl);
 }
 
-void MyGLfont::MyCreateFont(char *facename, int height, int weight, bool italic,bool underline,bool strikeout)
+void LyricsText::MyCreateFont(char *facename, int height, int weight, bool italic,bool underline,bool strikeout)
 {
     //LOGFONTA lf;
     LOGFONT lf;
@@ -46,7 +46,7 @@ void MyGLfont::MyCreateFont(char *facename, int height, int weight, bool italic,
 
 //2D图像汉字只与屏幕相联系，与具体的变换矩阵无关，也就是说不能缩放旋转。
 //x,y是2D图像汉字距屏幕左下角（注意不是左上角）的横向和纵向距离。
-void MyGLfont::ShowText(int x, int y, LPCTSTR lpszText)
+void LyricsText::ShowText(int x, int y, LPCTSTR lpszText)
 {
     // 保存原投影矩阵，将投影矩阵设为平行投影
     glMatrixMode( GL_PROJECTION );
@@ -125,7 +125,7 @@ void MyGLfont::ShowText(int x, int y, LPCTSTR lpszText)
     glColor3f(1.0,1.0,1.0);
 }
 
-void MyGLfont::Show2DGbkText(char *str)
+void LyricsText::Show2DGbkText(char *str)
 {
     float lrcWidth = 0.0f;//the whole length of this lyrics
     char FTextList[255];
@@ -189,7 +189,7 @@ void MyGLfont::Show2DGbkText(char *str)
     GLfloat fontZCoor = (m_front + m_back) / 2;
 
     //the width of the area in opengl space
-    GLfloat areaWidth = m_width / m_front * fontZCoor;
+    GLfloat areaWidth = m_width;// / m_front * fontZCoor;
 
     glLoadIdentity(); 
     if ((lrcWidth - areaWidth) > 0.000001f) {
@@ -212,7 +212,7 @@ void MyGLfont::Show2DGbkText(char *str)
     glPopMatrix();
 }
 
-void MyGLfont::SetArea(float width, float height, float front, float back)
+void LyricsText::SetArea(float width, float height, float front, float back)
 {
     m_width = width;
     m_height = height;
@@ -220,7 +220,7 @@ void MyGLfont::SetArea(float width, float height, float front, float back)
     m_back = back;
 }
 
-void MyGLfont::Show3DText(unsigned char *str)
+void LyricsText::Show3DText(unsigned char *str)
 {
     glPushMatrix();
     GLYPHMETRICSFLOAT pgmf[1];
@@ -251,7 +251,7 @@ void MyGLfont::Show3DText(unsigned char *str)
 }
 
 
-void MyGLfont::SetLrcFont(HFONT f)
+void LyricsText::SetLrcFont(HFONT f)
 {
     hFont = f;
 }

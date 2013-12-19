@@ -1,20 +1,18 @@
-//GLFont.h文件
-
-#ifndef __GL_FONT_H__
-#define __GL_FONT_H__
+#ifndef __LYRICS_TEXT_H__
+#define __LYRICS_TEXT_H__
 
 #include <windows.h>
 #include "gl/gl.h"
 #pragma warning(disable:4244)
 //OpenGL汉字显示类
-class MyGLfont
+class LyricsText
 {
     HFONT hFont;
     //operator HFONT( ) const;
     COLORREF cl;
 public:
-    MyGLfont();
-    virtual ~MyGLfont();
+    LyricsText();
+    virtual ~LyricsText();
     void SetTextColor(COLORREF textcolor);//字体颜色设置
     void SetLrcFont(HFONT f);//why can't be HFONT&  ?
     void MyCreateFont(char *facename, int height, int weight, bool italic,bool underline,bool strikeout);

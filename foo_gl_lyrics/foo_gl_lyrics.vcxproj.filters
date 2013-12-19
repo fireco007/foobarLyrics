@@ -26,22 +26,22 @@
     <ClInclude Include="window_helper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GLFont.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="LyricsWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LyricsPlayer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LrcDownloader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SakuraParticle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LyricsUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LyricsDownloader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LyricsText.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -55,9 +55,6 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GLFont.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="LyricsWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -67,13 +64,16 @@
     <ClCompile Include="LyricsPlayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LrcDownloader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="utils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SakuraParticle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LyricsUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LyricsDownloader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LyricsText.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

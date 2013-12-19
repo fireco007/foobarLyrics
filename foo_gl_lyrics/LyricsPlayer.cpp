@@ -1,5 +1,5 @@
 #include "LyricsPlayer.h"
-#include "utils.h"
+#include "LyricsUtils.h"
 #include "..\SDK\foobar2000.h"
 
 #include <cassert>
@@ -56,7 +56,7 @@ LyricsPlayer::~LyricsPlayer(void)
 void LyricsPlayer::setLrcDirectory(const string &strDir)
 {
     m_lrcDir = strDir;
-    LrcDownloader::setLrcDir(strDir);
+    LyricsDownloader::setLrcDir(strDir);
 }
 
 bool LyricsPlayer::setPlayingSong(const char *strSongName, const char *strAlbum, const char *strArtist, long long lStartTime)
@@ -86,9 +86,9 @@ bool LyricsPlayer::setPlayingSong(const char *strSongName, const char *strAlbum,
     if (!loadLrcFile()) {
 
         //may be Encode in UTF-8
-        m_title = gl_lyrics_utils::UTF8ToGB(strSongName);
-        m_artist = gl_lyrics_utils::UTF8ToGB(strArtist);
-        m_album = gl_lyrics_utils::UTF8ToGB(strAlbum);
+        m_title = LyricsUtils::UTF8ToGB(strSongName);
+        m_artist = LyricsUtils::UTF8ToGB(strArtist);
+        m_album = LyricsUtils::UTF8ToGB(strAlbum);
 
         m_isUTF8 = true;
         if (!loadLrcFile(true)) {
@@ -206,7 +206,7 @@ bool LyricsPlayer::parseLrc(const string &fileName)
 
         //check utf8
         if (m_isUTF8) {
-            strLrcLin = gl_lyrics_utils::UTF8ToGB(line.c_str());
+            strLrcLin = LyricsUtils::UTF8ToGB(line.c_str());
         } else {
             strLrcLin = line;
         }
@@ -281,14 +281,14 @@ void LyricsPlayer::pauseDisplayLrc(bool isPause)
 
         m_isPause = isPause;
         if (isPause) {
-            m_tmPause = gl_lyrics_utils::getCurTime();
+            m_tmPause = LyricsUtils::getCurTime();
             //stop thread here
 
             ResetEvent(m_pauseEvent);
         } else {
-            m_tmDelay += (gl_lyrics_utils::getCurTime() - m_tmPause);
+            m_tmDelay += (LyricsUtils::getCurTime() - m_tmPause);
 
-            startPlayFromAnyTime(static_cast<unsigned int>(gl_lyrics_utils::getCurTime() - m_tmStart - m_tmDelay));
+            startPlayFromAnyTime(static_cast<unsigned int>(LyricsUtils::getCurTime() - m_tmStart - m_tmDelay));
             SetEvent(m_pauseEvent);
         }
     }
@@ -444,7 +444,7 @@ long long LyricsPlayer::getFirstStartOffset()
 
     if (m_tmStart == 0) {
         //count the offset time
-        m_tmStart = gl_lyrics_utils::getCurTime();
+        m_tmStart = LyricsUtils::getCurTime();
         offset = m_tmStart - m_tmStartOffset; 
     }
 

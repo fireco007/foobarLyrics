@@ -10,11 +10,11 @@
 
 using namespace std;
 
-class LrcDownloader
+class LyricsDownloader
 {
 public:
-    LrcDownloader(void);
-    virtual ~LrcDownloader(void);
+    LyricsDownloader(void);
+    virtual ~LyricsDownloader(void);
 
     bool getLrc(const char* artist, const char *title);
 

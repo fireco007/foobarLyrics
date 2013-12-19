@@ -5,7 +5,7 @@
 #include <Windows.h>
 
 //time and string utils are defined here
-namespace gl_lyrics_utils {
+namespace LyricsUtils {
 
     void UnicodeToUTF8(char* pOut,wchar_t* pText);
 

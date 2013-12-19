@@ -121,12 +121,12 @@
   <ItemGroup>
     <ClInclude Include="config.h" />
     <ClInclude Include="DropSourceImpl.h" />
-    <ClInclude Include="GLFont.h" />
-    <ClInclude Include="LrcDownloader.h" />
+    <ClInclude Include="LyricsText.h" />
+    <ClInclude Include="LyricsDownloader.h" />
     <ClInclude Include="LyricsPlayer.h" />
     <ClInclude Include="SakuraParticle.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="utils.h" />
+    <ClInclude Include="LyricsUtils.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="LyricsWindow.h" />
     <ClInclude Include="window_helper.h" />
@@ -135,13 +135,13 @@
     <ClCompile Include="config.cpp" />
     <ClCompile Include="DropSourceImpl.cpp" />
     <ClCompile Include="foo_lyrics.cpp" />
-    <ClCompile Include="GLFont.cpp">
+    <ClCompile Include="LyricsText.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <UndefinePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">UNICODE;%(UndefinePreprocessorDefinitions)</UndefinePreprocessorDefinitions>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <UndefinePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">UNICODE</UndefinePreprocessorDefinitions>
     </ClCompile>
-    <ClCompile Include="LrcDownloader.cpp">
+    <ClCompile Include="LyricsDownloader.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -158,7 +158,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="LyricsWindow.cpp" />
-    <ClCompile Include="utils.cpp">
+    <ClCompile Include="LyricsUtils.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>

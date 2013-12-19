@@ -1,9 +1,9 @@
-#include "utils.h"
+#include "LyricsUtils.h"
 
 #include <sys/types.h>
 #include <sys/timeb.h>
 
-void gl_lyrics_utils::UnicodeToUTF8(char* pOut,wchar_t* pText)   
+void LyricsUtils::UnicodeToUTF8(char* pOut,wchar_t* pText)   
 {   
     // 注意 WCHAR高低字的顺序,低字节在前，高字节在后   
     char* pchar = (char *)pText;   
@@ -12,7 +12,7 @@ void gl_lyrics_utils::UnicodeToUTF8(char* pOut,wchar_t* pText)
     pOut[2] = (0x80 | (pchar[0] & 0x3F));  
 } 
 
-void gl_lyrics_utils::GBToUTF8(std::string& pOut, char *pText, int pLen)  
+void LyricsUtils::GBToUTF8(std::string& pOut, char *pText, int pLen)  
 {    
     char buf[4] = {0};   
     int nLength = pLen* 3;   
@@ -45,7 +45,7 @@ void gl_lyrics_utils::GBToUTF8(std::string& pOut, char *pText, int pLen)
     return;     
 }
 
-std::string gl_lyrics_utils::UTF8ToGB(const char* str)
+std::string LyricsUtils::UTF8ToGB(const char* str)
 {
     WCHAR *strSrc;
     TCHAR *szRes;
@@ -71,7 +71,7 @@ std::string gl_lyrics_utils::UTF8ToGB(const char* str)
     return strGB;
 }
 
-long long gl_lyrics_utils::getCurTime()
+long long LyricsUtils::getCurTime()
 {
     timeb timeNow;
     ftime(&timeNow);

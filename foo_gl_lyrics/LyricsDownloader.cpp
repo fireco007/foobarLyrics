@@ -1,20 +1,20 @@
-#include "LrcDownloader.h"
-#include "utils.h"
+#include "LyricsDownloader.h"
+#include "LyricsUtils.h"
 #include <fstream>
 
 using namespace std;
 
-string LrcDownloader::m_lrcUrlBeginKey = "http://www.1ting.com/lrc";
-string LrcDownloader::m_lrcUrlEndKey = "\""; 
-string LrcDownloader::m_lrcBeginKey = "<div id=\"lrc\">";;
-string LrcDownloader::m_lrcEndKey = "</div>";
+string LyricsDownloader::m_lrcUrlBeginKey = "http://www.1ting.com/lrc";
+string LyricsDownloader::m_lrcUrlEndKey = "\""; 
+string LyricsDownloader::m_lrcBeginKey = "<div id=\"lrc\">";;
+string LyricsDownloader::m_lrcEndKey = "</div>";
 
-string LrcDownloader::m_lrcTitle;
-string LrcDownloader::m_lrcArtist;
+string LyricsDownloader::m_lrcTitle;
+string LyricsDownloader::m_lrcArtist;
 
-string LrcDownloader::m_lrcDir;
+string LyricsDownloader::m_lrcDir;
 
-LrcDownloader::LrcDownloader(void)
+LyricsDownloader::LyricsDownloader(void)
 {
     m_siteUrl = "http://so.1ting.com/all.do?q=";
 
@@ -32,7 +32,7 @@ LrcDownloader::LrcDownloader(void)
 }
 
 
-LrcDownloader::~LrcDownloader(void)
+LyricsDownloader::~LyricsDownloader(void)
 {
     if (m_url != NULL) {
         curl_easy_cleanup(m_url);
@@ -41,12 +41,12 @@ LrcDownloader::~LrcDownloader(void)
     curl_global_cleanup();
 }
 
-void LrcDownloader::setLrcDir(const string &strDir)
+void LyricsDownloader::setLrcDir(const string &strDir)
 {
     m_lrcDir = strDir;
 }
 
-size_t LrcDownloader::searchLrcUrlHandler(void *buffer, size_t size, size_t nmemb, void *user_p)
+size_t LyricsDownloader::searchLrcUrlHandler(void *buffer, size_t size, size_t nmemb, void *user_p)
 {
     string strIn((char*)buffer);
 
@@ -64,7 +64,7 @@ size_t LrcDownloader::searchLrcUrlHandler(void *buffer, size_t size, size_t nmem
     return 0;
 }
 
-size_t LrcDownloader::saveLrcHandler(void *buffer, size_t size, size_t nmemb, void *user_p)
+size_t LyricsDownloader::saveLrcHandler(void *buffer, size_t size, size_t nmemb, void *user_p)
 {
     string strIn((char*)buffer);
     size_t posStart = string::npos;
@@ -109,7 +109,7 @@ size_t LrcDownloader::saveLrcHandler(void *buffer, size_t size, size_t nmemb, vo
     return size * nmemb;
 }
 
-int LrcDownloader::getLrcUrl(const char* getUrl, string &retBuff)
+int LyricsDownloader::getLrcUrl(const char* getUrl, string &retBuff)
 {
     if (NULL == getUrl)
         return 0;
@@ -143,7 +143,7 @@ int LrcDownloader::getLrcUrl(const char* getUrl, string &retBuff)
     return 0;
 }
 
-int LrcDownloader::saveLrcFile(const char* strUrl, string &retBuff)
+int LyricsDownloader::saveLrcFile(const char* strUrl, string &retBuff)
 {
     if (NULL == strUrl)
         return 0;
@@ -177,12 +177,12 @@ int LrcDownloader::saveLrcFile(const char* strUrl, string &retBuff)
     return 0;
 }
 
-bool LrcDownloader::getLrc(const char* artist, const char *title)
+bool LyricsDownloader::getLrc(const char* artist, const char *title)
 {
     m_lrcTitle = title;
     m_lrcArtist = artist;
     string strTitle;
-    gl_lyrics_utils::GBToUTF8(strTitle, const_cast<char*>(title), strlen(title));
+    LyricsUtils::GBToUTF8(strTitle, const_cast<char*>(title), strlen(title));
 
     char strUrl[1024];
     memset(strUrl, 0, 1024);

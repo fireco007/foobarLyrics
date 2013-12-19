@@ -65,18 +65,20 @@ void SakuraParticle::initParticles()
         m_deadParticles.push_back(m_particles + i);
     }
 
-    loadTexture("E:\\hana.bmp");
+    loadTexture("E:\\pants\\kuku.bmp");
 }
 
 void SakuraParticle::drawParticles()
 {
-    const float fSize = 0.15f;
+    const float fSize = 0.5f;
     glLoadIdentity();
 
-    glColor4f(1.0f, 0.6f, 0.6f, 1.0f);
+    //glColor4f(1.0f, 0.6f, 0.6f, 1.0f);
 
     std::list<PARTICLES*>::iterator activeIte = m_activeParticles.begin();
     for (; activeIte != m_activeParticles.end(); ++activeIte) {
+
+        glColor4f((*activeIte)->r, (*activeIte)->g, (*activeIte)->b, 1.0f/*(*activeIte)->a*/);
 
         glBegin(GL_TRIANGLE_STRIP);
         glTexCoord2d(1, 1);
@@ -95,6 +97,7 @@ void SakuraParticle::drawParticles()
 void SakuraParticle::updateParticles()
 {
     //random generate new particles
+    // y = ((*deadIte)->y) * cos(x' [ + pi ] + ((*deadIte)->x));
     if ((rand() % 2) == 0 ) {
 
         std::list<PARTICLES*>::iterator deadIte = m_deadParticles.begin();
@@ -107,13 +110,23 @@ void SakuraParticle::updateParticles()
             //(*deadIte)->a = (rand() % 100) / 100.0f;
             //(*deadIte)->xi = (rand() % 100) / 1000.0f + 0.1;
 
-            (*deadIte)->y = m_height / 2  - 1.5f;
-            (*deadIte)->z = -m_front;
-            (*deadIte)->x = -m_width / 2;
-            (*deadIte)->a = (rand() % 98) / 100.0f + 0.02f;
+            (*deadIte)->y = m_height / 2 - 1.0f - (rand() % 900) / 1000.0f;
+            (*deadIte)->life = (*deadIte)->y;
 
-            (*deadIte)->xi = 0.01f;
-            (*deadIte)->zi = -0.1f;
+            (*deadIte)->z = -m_front;
+            (*deadIte)->x = -m_width / 2 + (rand() % 900) / 1000.0f;
+            (*deadIte)->fade = (*deadIte)->x;
+            (*deadIte)->a = (rand() % 8) / 10.0f + 0.2f;
+            (*deadIte)->r = (rand() % 10) / 10.0f;
+            (*deadIte)->g = (rand() % 10) / 10.0f;
+            (*deadIte)->b = (rand() % 10) / 10.0f;
+
+            (*deadIte)->xi = 0.1f;
+
+            //2 * 3.1415926f : xi = 2 * (m_back - m_front) : zi
+            // ==> 3.1415926f * zi = xi * (m_back - m_front)
+            // ==> zi = xi * (m_back - m_front) / 3.1415926f
+            (*deadIte)->zi = -(*deadIte)->xi * (m_back - m_front) / 3.1415926f / 2; 
             (*deadIte)->yi = 0.0f;
             m_activeParticles.push_back(*deadIte);
             deadIte = m_deadParticles.erase(deadIte);
@@ -126,14 +139,21 @@ void SakuraParticle::updateParticles()
         if (deadIte != m_deadParticles.end()) {
 
             //init this particles
-            (*deadIte)->y = - (m_height / 2)  + 1.5f;
-            (*deadIte)->z = -m_back;
-            (*deadIte)->x = -m_width / 2;
-            (*deadIte)->a = (rand() % 98) / 100.0f + 0.02f;
+            (*deadIte)->y = - (m_height / 2)  + 1.0f + (rand() % 900) / 1000.0f;
+            (*deadIte)->life = - (*deadIte)->y;
 
-            (*deadIte)->xi = 0.01f;
-            (*deadIte)->zi = 0.1f;
-            (*deadIte)->yi = 3.1415926535f / 2;
+            (*deadIte)->z = -m_back;
+            (*deadIte)->x = -m_width / 2 + (rand() % 900) / 1000.0f;
+            (*deadIte)->fade = (*deadIte)->x;
+
+            (*deadIte)->a = (rand() % 98) / 100.0f + 0.02f;
+            (*deadIte)->r = (rand() % 10) / 10.0f;
+            (*deadIte)->g = (rand() % 10) / 10.0f;
+            (*deadIte)->b = (rand() % 10) / 10.0f;
+
+            (*deadIte)->xi = 0.1f;
+            (*deadIte)->zi = (*deadIte)->xi * (m_back - m_front) / 3.1415926f / 2;
+            (*deadIte)->yi = 3.1415926f;
             m_activeParticles.push_back(*deadIte);
             deadIte = m_deadParticles.erase(deadIte);
         }
@@ -148,17 +168,16 @@ void SakuraParticle::updateParticles()
 
         //update z coordinate
         (*activeIte)->z += (*activeIte)->zi;
-        if ((*activeIte)->z - m_back >= 0.000001f) {
-            (*activeIte)->zi = 0.1f;
+        if (-((*activeIte)->z) >= m_back) {
+            (*activeIte)->zi = (*activeIte)->xi * (m_back - m_front) / 3.1415926f / 2;
         }
 
-        if (m_front - (*activeIte)->z >= 0.000001f) {
-            (*activeIte)->zi = -0.1f;
+        if (-((*activeIte)->z) <= m_front) {
+            (*activeIte)->zi = -(*activeIte)->xi * (m_back - m_front) / 3.1415926f / 2;
         }
 
         //update y coordinate
-        (*activeIte)->yi += 0.1f;
-        (*activeIte)->y = cos((*activeIte)->yi) * (m_height / 2);
+        (*activeIte)->y = (*activeIte)->life * cos(((*activeIte)->x) / 2 + (*activeIte)->fade / 2/*m_width / 4*/ + (*activeIte)->yi);
 
         if ((*activeIte)->x > (m_width / 2)) {
             m_deadParticles.push_back(*activeIte);

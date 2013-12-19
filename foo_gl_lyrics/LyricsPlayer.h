@@ -14,7 +14,7 @@
 #include <Windows.h>
 #include <string>
 #include <vector>
-#include "LrcDownloader.h"
+#include "LyricsDownloader.h"
 
 using namespace std;
 
@@ -165,7 +165,7 @@ private:
     long long m_tmPause;
     long long m_tmDelay;
 
-    LrcDownloader m_downloader;
+    LyricsDownloader m_downloader;
 };
 
 #endif//__LYRICS_PLAYER_H__

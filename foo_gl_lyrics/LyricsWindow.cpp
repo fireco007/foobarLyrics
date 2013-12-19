@@ -2,7 +2,7 @@
 #include "stdafx.h"
 #include "LyricsWindow.h"
 #include "DropSourceImpl.h"
-#include "utils.h"
+#include "LyricsUtils.h"
 #include "config.h"
 
 HWND CLyricsWindow::m_wnd;
@@ -38,7 +38,7 @@ GLvoid CLyricsWindow::drawScene()
 
     glDisable(GL_ALPHA_TEST);
     glDisable(GL_TEXTURE_2D);
-    m_lrcFont.Show2DGbkText((char*)m_strLrc.c_str());
+    m_lrcText.Show2DGbkText((char*)m_strLrc.c_str());
 
     SwapBuffers(m_hDC);
 }
@@ -54,7 +54,8 @@ GLvoid CLyricsWindow::resizeWindow(GLsizei width, GLsizei height)
 
     glMatrixMode( GL_PROJECTION ); 
     glLoadIdentity(); 
-    gluPerspective(VIEW_ANGLE, aspect, VIEW_FRONT, VIEW_BACK); 
+   // gluPerspective(VIEW_ANGLE, aspect, VIEW_FRONT, VIEW_BACK); 
+    glOrtho(-25.0f, 25.0f, -25.0f / aspect, 25.0f / aspect, VIEW_FRONT, VIEW_BACK);
     glMatrixMode( GL_MODELVIEW ); 
 } 
 
@@ -67,7 +68,8 @@ GLvoid CLyricsWindow::initializeGL(GLsizei width, GLsizei height)
 
     glMatrixMode( GL_PROJECTION ); 
     GLfloat aspect = (GLfloat) width / height; 
-    gluPerspective(VIEW_ANGLE, aspect, VIEW_FRONT, VIEW_BACK); 
+    //gluPerspective(VIEW_ANGLE, aspect, VIEW_FRONT, VIEW_BACK); 
+    glOrtho(-25.0f, 25.0f, -25.0f / aspect, 25.0f / aspect, VIEW_FRONT, VIEW_BACK);
     glMatrixMode( GL_MODELVIEW ); 
 
     //2013-12-11: ok, i've find out this
@@ -81,11 +83,18 @@ GLvoid CLyricsWindow::initializeGL(GLsizei width, GLsizei height)
     */
 
     //set area of lyrics display
-    float fHeight = 2 * VIEW_FRONT * tan(VIEW_DEGREE / 2);
+   /* float fHeight = 2 * VIEW_FRONT * tan(VIEW_DEGREE / 2);
     float fWidth = aspect * fHeight;
     m_lrcFont.SetArea(fWidth, fHeight, VIEW_FRONT, VIEW_BACK);
     m_sakuraParticles = SakuraParticle::getInstance();
-    m_sakuraParticles->setRect(fWidth / 3.0f * 5.0f, fHeight / 3.0f * 5.0f, VIEW_FRONT, VIEW_BACK);
+    m_sakuraParticles->setRect(fWidth / 3.0f * 5.0f, fHeight / 3.0f * 5.0f, VIEW_FRONT, VIEW_BACK);*/
+
+
+    float fHeight = 50.0f / aspect;
+    float fWidth = 50.0f;
+    m_lrcText.SetArea(fWidth, fHeight, VIEW_FRONT, VIEW_BACK);
+    m_sakuraParticles = SakuraParticle::getInstance();
+    m_sakuraParticles->setRect(fWidth, fHeight, VIEW_FRONT, VIEW_BACK);
 
     glEnable(GL_BLEND);
     glShadeModel(GL_SMOOTH);
@@ -328,8 +337,8 @@ LRESULT CLyricsWindow::OnCreate(LPCREATESTRUCT pCreateStruct) {
 
 	// Initialize the font and font color
 	m_font = cfg_font.get_value().create();
-    m_lrcFont.SetLrcFont(m_font); //change the lyrics font
-    m_lrcFont.SetTextColor(cfg_font_color); //set font's color
+    m_lrcText.SetLrcFont(m_font); //change the lyrics font
+    m_lrcText.SetTextColor(cfg_font_color); //set font's color
 
 	// Acquire a ui_selection_holder that allows us to notify other components
 	// of the selected tracks in our window, when it has the focus.
@@ -543,7 +552,7 @@ void CLyricsWindow::OnContextMenu(HWND hWnd, CPoint point) {
 
             //set color of the font
             cfg_font_color = chooseFont.rgbColors;
-            m_lrcFont.SetTextColor(chooseFont.rgbColors);
+            m_lrcText.SetTextColor(chooseFont.rgbColors);
 
             //didn't support to change the font's size
             font.m_height = 100;//chooseFont.lpLogFont->lfHeight;
@@ -559,7 +568,7 @@ void CLyricsWindow::OnContextMenu(HWND hWnd, CPoint point) {
 
             cfg_font = font;
             m_font = font.create();
-            m_lrcFont.SetLrcFont(m_font);
+            m_lrcText.SetLrcFont(m_font);
             ::RedrawWindow(m_hWnd, 0, 0, RDW_INVALIDATE|RDW_UPDATENOW);
         }
 
@@ -606,7 +615,7 @@ bool CLyricsWindow::pretranslate_message(MSG * p_msg) {
 
 void CLyricsWindow::on_playback_new_track(metadb_handle_ptr p_track) {
 
-    long long startTime = gl_lyrics_utils::getCurTime();
+    long long startTime = LyricsUtils::getCurTime();
 	RedrawWindow();
 	set_selection(pfc::list_single_ref_t<metadb_handle_ptr>(p_track));
 

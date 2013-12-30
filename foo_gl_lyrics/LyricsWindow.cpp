@@ -16,10 +16,11 @@ string CLyricsWindow::m_strLrc;
 #define LRCWND_HEIGHT 150 
 
 //for perspective projection
-#define VIEW_NEAR 3.0f // the near position in Z
-#define VIEW_FAR 7.0f // the far position in Z
-#define VIEW_RIGHT 25.0f
-#define VIEW_WIDTH (2 * VIEW_RIGHT)
+#define PI 3.1415926f 
+#define VIEW_FRONT 3.0f // the near position in Z
+#define VIEW_BACK 7.0f // the far position in Z
+#define VIEW_ANGLE 45.0f
+#define VIEW_DEGREE (VIEW_ANGLE * PI / 180.0f)
 
 GLvoid CLyricsWindow::drawScene() 
 { 
@@ -53,8 +54,8 @@ GLvoid CLyricsWindow::resizeWindow(GLsizei width, GLsizei height)
 
     glMatrixMode( GL_PROJECTION ); 
     glLoadIdentity(); 
-    glOrtho(-m_glContext.fRight, m_glContext.fRight, -m_glContext.fTop, 
-        m_glContext.fTop, m_glContext.fNear, m_glContext.fFar);
+   // gluPerspective(VIEW_ANGLE, aspect, VIEW_FRONT, VIEW_BACK); 
+    glOrtho(-25.0f, 25.0f, -25.0f / aspect, 25.0f / aspect, VIEW_FRONT, VIEW_BACK);
     glMatrixMode( GL_MODELVIEW ); 
 } 
 
@@ -66,15 +67,9 @@ GLvoid CLyricsWindow::initializeGL(GLsizei width, GLsizei height)
     glEnable(GL_DEPTH_TEST); 
 
     glMatrixMode( GL_PROJECTION ); 
-    GLfloat aspect = (GLfloat) width / height;
-
-    m_glContext.fRight = VIEW_RIGHT;
-    m_glContext.fTop = VIEW_RIGHT / aspect;
-    m_glContext.fNear = VIEW_NEAR;
-    m_glContext.fFar = VIEW_FAR;
-
-    glOrtho(-m_glContext.fRight, m_glContext.fRight, -m_glContext.fTop, 
-        m_glContext.fTop, m_glContext.fNear, m_glContext.fFar);
+    GLfloat aspect = (GLfloat) width / height; 
+    //gluPerspective(VIEW_ANGLE, aspect, VIEW_FRONT, VIEW_BACK); 
+    glOrtho(-25.0f, 25.0f, -25.0f / aspect, 25.0f / aspect, VIEW_FRONT, VIEW_BACK);
     glMatrixMode( GL_MODELVIEW ); 
 
     //2013-12-11: ok, i've find out this
@@ -94,9 +89,12 @@ GLvoid CLyricsWindow::initializeGL(GLsizei width, GLsizei height)
     m_sakuraParticles = SakuraParticle::getInstance();
     m_sakuraParticles->setRect(fWidth / 3.0f * 5.0f, fHeight / 3.0f * 5.0f, VIEW_FRONT, VIEW_BACK);*/
 
-    m_lrcText.SetGlCtx(&m_glContext);
+
+    float fHeight = 50.0f / aspect;
+    float fWidth = 50.0f;
+    m_lrcText.SetArea(fWidth, fHeight, VIEW_FRONT, VIEW_BACK);
     m_sakuraParticles = SakuraParticle::getInstance();
-    m_sakuraParticles->setGlCtx(&m_glContext);
+    m_sakuraParticles->setRect(fWidth, fHeight, VIEW_FRONT, VIEW_BACK);
 
     glEnable(GL_BLEND);
     glShadeModel(GL_SMOOTH);

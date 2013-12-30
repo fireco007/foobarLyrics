@@ -8,7 +8,6 @@
 #include <GL/glu.h> 
 #include "LyricsText.h"
 #include "LyricsPlayer.h"
-#include "LyricsCommon.h"
 #include "SakuraParticle.h"
 
 //You have to preinstall Windows SDK or else you can't get the OpenGL32.lib and glu32.lib
@@ -144,8 +143,6 @@ private:
     HDC m_hDC; ///< 本窗口的DC 
     HGLRC m_hRC; ///< OpenGL context
     LyricsText m_lrcText;  ///< 歌词字体
-
-    GL_CONTEXT m_glContext;
 
     POINT m_dragStart; // for lyrics window drag&drop
 

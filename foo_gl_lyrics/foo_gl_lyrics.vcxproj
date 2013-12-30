@@ -121,7 +121,6 @@
   <ItemGroup>
     <ClInclude Include="config.h" />
     <ClInclude Include="DropSourceImpl.h" />
-    <ClInclude Include="LyricsCommon.h" />
     <ClInclude Include="LyricsText.h" />
     <ClInclude Include="LyricsDownloader.h" />
     <ClInclude Include="LyricsPlayer.h" />

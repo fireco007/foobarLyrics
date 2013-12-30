@@ -37,9 +37,12 @@ void SakuraParticle::destroyInstance()
     }
 }
 
-void SakuraParticle::setGlCtx(GL_CONTEXT *glCtx)
+void SakuraParticle::setRect(float width, float height, float front, float back)
 {
-    m_glCtx = glCtx;
+    m_width = width;
+    m_height = height;
+    m_front = front;
+    m_back = back;
 }
 
 VOID SakuraParticle::timerCallback(HWND wnd, UINT id, UINT_PTR ptr, DWORD unknown)
@@ -107,11 +110,11 @@ void SakuraParticle::updateParticles()
             //(*deadIte)->a = (rand() % 100) / 100.0f;
             //(*deadIte)->xi = (rand() % 100) / 1000.0f + 0.1;
 
-            (*deadIte)->y = m_glCtx->getHeight() / 2 - 1.0f - (rand() % 900) / 1000.0f;
+            (*deadIte)->y = m_height / 2 - 1.0f - (rand() % 900) / 1000.0f;
             (*deadIte)->life = (*deadIte)->y;
 
-            (*deadIte)->z = -m_glCtx->fNear;
-            (*deadIte)->x = -m_glCtx->getWidth() / 2 + (rand() % 900) / 1000.0f;
+            (*deadIte)->z = -m_front;
+            (*deadIte)->x = -m_width / 2 + (rand() % 900) / 1000.0f;
             (*deadIte)->fade = (*deadIte)->x;
             (*deadIte)->a = (rand() % 8) / 10.0f + 0.2f;
             (*deadIte)->r = (rand() % 10) / 10.0f;
@@ -123,7 +126,7 @@ void SakuraParticle::updateParticles()
             //2 * 3.1415926f : xi = 2 * (m_back - m_front) : zi
             // ==> 3.1415926f * zi = xi * (m_back - m_front)
             // ==> zi = xi * (m_back - m_front) / 3.1415926f
-            (*deadIte)->zi = -(*deadIte)->xi * (m_glCtx->fFar - m_glCtx->fNear) / PI / 2; 
+            (*deadIte)->zi = -(*deadIte)->xi * (m_back - m_front) / 3.1415926f / 2; 
             (*deadIte)->yi = 0.0f;
             m_activeParticles.push_back(*deadIte);
             deadIte = m_deadParticles.erase(deadIte);
@@ -136,11 +139,11 @@ void SakuraParticle::updateParticles()
         if (deadIte != m_deadParticles.end()) {
 
             //init this particles
-            (*deadIte)->y = - (m_glCtx->getHeight() / 2)  + 1.0f + (rand() % 900) / 1000.0f;
+            (*deadIte)->y = - (m_height / 2)  + 1.0f + (rand() % 900) / 1000.0f;
             (*deadIte)->life = - (*deadIte)->y;
 
-            (*deadIte)->z = -m_glCtx->fFar;
-            (*deadIte)->x = -m_glCtx->getWidth() / 2 + (rand() % 900) / 1000.0f;
+            (*deadIte)->z = -m_back;
+            (*deadIte)->x = -m_width / 2 + (rand() % 900) / 1000.0f;
             (*deadIte)->fade = (*deadIte)->x;
 
             (*deadIte)->a = (rand() % 98) / 100.0f + 0.02f;
@@ -149,8 +152,8 @@ void SakuraParticle::updateParticles()
             (*deadIte)->b = (rand() % 10) / 10.0f;
 
             (*deadIte)->xi = 0.1f;
-            (*deadIte)->zi = (*deadIte)->xi * (m_glCtx->fFar - m_glCtx->fNear) / PI / 2;
-            (*deadIte)->yi = PI;
+            (*deadIte)->zi = (*deadIte)->xi * (m_back - m_front) / 3.1415926f / 2;
+            (*deadIte)->yi = 3.1415926f;
             m_activeParticles.push_back(*deadIte);
             deadIte = m_deadParticles.erase(deadIte);
         }
@@ -165,18 +168,18 @@ void SakuraParticle::updateParticles()
 
         //update z coordinate
         (*activeIte)->z += (*activeIte)->zi;
-        if (-((*activeIte)->z) >= m_glCtx->fFar) {
-            (*activeIte)->zi = (*activeIte)->xi * (m_glCtx->fFar - m_glCtx->fNear) / PI / 2;
+        if (-((*activeIte)->z) >= m_back) {
+            (*activeIte)->zi = (*activeIte)->xi * (m_back - m_front) / 3.1415926f / 2;
         }
 
-        if (-((*activeIte)->z) <= m_glCtx->fNear) {
-            (*activeIte)->zi = -(*activeIte)->xi * (m_glCtx->fFar - m_glCtx->fNear) / PI / 2;
+        if (-((*activeIte)->z) <= m_front) {
+            (*activeIte)->zi = -(*activeIte)->xi * (m_back - m_front) / 3.1415926f / 2;
         }
 
         //update y coordinate
         (*activeIte)->y = (*activeIte)->life * cos(((*activeIte)->x) / 2 + (*activeIte)->fade / 2/*m_width / 4*/ + (*activeIte)->yi);
 
-        if ((*activeIte)->x > (m_glCtx->getWidth() / 2)) {
+        if ((*activeIte)->x > (m_width / 2)) {
             m_deadParticles.push_back(*activeIte);
             activeIte = m_activeParticles.erase(activeIte);
         } else {

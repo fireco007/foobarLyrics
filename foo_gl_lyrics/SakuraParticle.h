@@ -3,6 +3,7 @@
 
 #include <Windows.h>
 #include <list>
+#include "LyricsCommon.h"
 
 #define MAX_PARTICLES 1000
 
@@ -40,7 +41,7 @@ public:
 
     void clearParticles();
 
-    void setRect(float width, float height, float front, float back);
+    void setGlCtx(GL_CONTEXT *glCtx);
 
     void startDisplay(HWND wnd);
 
@@ -72,10 +73,8 @@ private:
     PARTICLES m_particles[MAX_PARTICLES];
     std::list<PARTICLES*> m_activeParticles;
     std::list<PARTICLES*> m_deadParticles;
-    float m_width;
-    float m_height;
-    float m_front;
-    float m_back;
+
+    GL_CONTEXT *m_glCtx;
 };
 
 #endif //_SAKURA_PARTICLE_H_

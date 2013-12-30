@@ -186,10 +186,10 @@ void LyricsText::Show2DGbkText(char *str)
     } 
 
     //set the Z coordinate for the font display in the middle of the front and back
-    GLfloat fontZCoor = (m_front + m_back) / 2;
+    GLfloat fontZCoor = (m_glCtx->fFar + m_glCtx->fNear) / 2;
 
     //the width of the area in opengl space
-    GLfloat areaWidth = m_width;// / m_front * fontZCoor;
+    GLfloat areaWidth = m_glCtx->getWidth();// / m_front * fontZCoor;
 
     glLoadIdentity(); 
     if ((lrcWidth - areaWidth) > 0.000001f) {
@@ -212,12 +212,9 @@ void LyricsText::Show2DGbkText(char *str)
     glPopMatrix();
 }
 
-void LyricsText::SetArea(float width, float height, float front, float back)
+void LyricsText::SetGlCtx(GL_CONTEXT *glCtx)
 {
-    m_width = width;
-    m_height = height;
-    m_front = front;
-    m_back = back;
+    m_glCtx = glCtx;
 }
 
 void LyricsText::Show3DText(unsigned char *str)

@@ -64,6 +64,8 @@ private:
     //only support 32bit(bgra) bmp
     unsigned int loadTexture(const char *imgFile);
 
+    unsigned int loadPNGTexture(const char *imgFile);
+
     SakuraParticle(void);
 
 private:

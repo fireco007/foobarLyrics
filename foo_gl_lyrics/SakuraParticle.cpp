@@ -4,6 +4,8 @@
 #include <GL/gl.h> 
 #include <GL/glu.h> 
 #include <gl/glaux.h>
+#include "png.h"
+#include "zlib.h"
 
 SakuraParticle *SakuraParticle::m_handle = NULL;
 
@@ -259,3 +261,48 @@ unsigned int SakuraParticle::loadTexture(const char *imgFile)
     return texture;
 }
 
+unsigned int SakuraParticle::loadPNGTexture(const char *imgFile)
+{
+    unsigned int texture;
+
+    png_bytep buffer;
+
+    png_image image;
+    memset(&image, 0, sizeof(image));
+    image.version = PNG_IMAGE_VERSION;
+    
+    if (png_image_begin_read_from_file(&image, imgFile)) {
+        
+        image.format = PNG_FORMAT_RGBA;
+        buffer = (unsigned char*)malloc(PNG_IMAGE_SIZE(image));
+
+        if (buffer == NULL ||
+            !png_image_finish_read(&image, NULL, buffer, 0, NULL)) {
+            return 0;
+        }
+    }
+
+    //load bmp data into texture;
+    glEnable(GL_TEXTURE_2D);
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    //we got a good video card, so let's use GL_LINEAR!
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+    //gluBuild2DMipmaps(GL_TEXTURE_2D, 4, imgWidth, imgHeight, GL_RGBA, GL_UNSIGNED_BYTE, imgDataWithAlpha);
+
+    //gluBuild2DMipmaps(GL_TEXTURE_2D, 4, imgWidth, imgHeight, GL_BGRA_EXT, GL_UNSIGNED_BYTE, buffer);
+    gluBuild2DMipmaps(GL_TEXTURE_2D, 4, image.width, image.height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+
+    if (buffer) {
+        free(buffer);
+    }
+    png_image_free(&image);
+
+    return texture;
+}

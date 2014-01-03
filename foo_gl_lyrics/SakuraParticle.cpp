@@ -64,22 +64,23 @@ void SakuraParticle::initParticles()
         m_deadParticles.push_back(m_particles + i);
     }
 
-    loadTexture("E:\\pants\\kuku.bmp");
+    //loadTexture(".\\kuku.bmp");
+    loadPNGTexture(".\\fengye.png");//now we can support png
 }
 
 void SakuraParticle::drawParticles()
 {
-    const float fSize = 0.5f;
-    glLoadIdentity();
+    const float fSize = 0.3f;//control the display size of particles
 
     //glColor4f(1.0f, 0.6f, 0.6f, 1.0f);
+    glLoadIdentity();
 
     std::list<PARTICLES*>::iterator activeIte = m_activeParticles.begin();
     for (; activeIte != m_activeParticles.end(); ++activeIte) {
 
         glColor4f((*activeIte)->r, (*activeIte)->g, (*activeIte)->b, 1.0f/*(*activeIte)->a*/);
-
         glBegin(GL_TRIANGLE_STRIP);
+
         glTexCoord2d(1, 1);
         glVertex3f((*activeIte)->x + fSize, (*activeIte)->y + fSize, (*activeIte)->z);
         glTexCoord2d(0, 1);
@@ -109,12 +110,12 @@ void SakuraParticle::updateParticles()
             //(*deadIte)->a = (rand() % 100) / 100.0f;
             //(*deadIte)->xi = (rand() % 100) / 1000.0f + 0.1;
 
-            (*deadIte)->y = m_glCtx->getHeight() / 2 - 1.0f - (rand() % 900) / 1000.0f;
+            (*deadIte)->y = m_glCtx->getHeight() / 2 - 0.5f - (rand() % 900) / 1000.0f;
             (*deadIte)->life = (*deadIte)->y;
 
             (*deadIte)->z = -m_glCtx->fNear;
             (*deadIte)->x = -m_glCtx->getWidth() / 2 + (rand() % 900) / 1000.0f;
-            (*deadIte)->fade = (*deadIte)->x;
+            (*deadIte)->org_x = (*deadIte)->x;
             (*deadIte)->a = (rand() % 8) / 10.0f + 0.2f;
             (*deadIte)->r = (rand() % 10) / 10.0f;
             (*deadIte)->g = (rand() % 10) / 10.0f;
@@ -122,11 +123,15 @@ void SakuraParticle::updateParticles()
 
             (*deadIte)->xi = 0.1f;
 
+            //set rotate speed
+            (*deadIte)->rx = 0.1f;
+            (*deadIte)->ry = 0.1f;
+
             //2 * 3.1415926f : xi = 2 * (m_back - m_front) : zi
             // ==> 3.1415926f * zi = xi * (m_back - m_front)
             // ==> zi = xi * (m_back - m_front) / 3.1415926f
             (*deadIte)->zi = -(*deadIte)->xi * (m_glCtx->fFar - m_glCtx->fNear) / PI / 2; 
-            (*deadIte)->yi = 0.0f;
+            (*deadIte)->angle = 0.0f;
             m_activeParticles.push_back(*deadIte);
             deadIte = m_deadParticles.erase(deadIte);
         }
@@ -138,12 +143,12 @@ void SakuraParticle::updateParticles()
         if (deadIte != m_deadParticles.end()) {
 
             //init this particles
-            (*deadIte)->y = - (m_glCtx->getHeight() / 2)  + 1.0f + (rand() % 900) / 1000.0f;
+            (*deadIte)->y = - (m_glCtx->getHeight() / 2)  + 0.5f + (rand() % 900) / 1000.0f;
             (*deadIte)->life = - (*deadIte)->y;
 
             (*deadIte)->z = -m_glCtx->fFar;
             (*deadIte)->x = -m_glCtx->getWidth() / 2 + (rand() % 900) / 1000.0f;
-            (*deadIte)->fade = (*deadIte)->x;
+            (*deadIte)->org_x = (*deadIte)->x;
 
             (*deadIte)->a = (rand() % 98) / 100.0f + 0.02f;
             (*deadIte)->r = (rand() % 10) / 10.0f;
@@ -152,7 +157,12 @@ void SakuraParticle::updateParticles()
 
             (*deadIte)->xi = 0.1f;
             (*deadIte)->zi = (*deadIte)->xi * (m_glCtx->fFar - m_glCtx->fNear) / PI / 2;
-            (*deadIte)->yi = PI;
+            (*deadIte)->angle = PI;
+
+            //set rotate speed
+            (*deadIte)->rx = 0.1f;
+            (*deadIte)->ry = 0.1f;
+
             m_activeParticles.push_back(*deadIte);
             deadIte = m_deadParticles.erase(deadIte);
         }
@@ -176,7 +186,11 @@ void SakuraParticle::updateParticles()
         }
 
         //update y coordinate
-        (*activeIte)->y = (*activeIte)->life * cos(((*activeIte)->x) / 2 + (*activeIte)->fade / 2/*m_width / 4*/ + (*activeIte)->yi);
+        (*activeIte)->y = (*activeIte)->life * cos(((*activeIte)->x) / 2 + (*activeIte)->org_x / 2/*m_width / 4*/ + (*activeIte)->angle);
+
+        //update rotate angle
+        (*activeIte)->rx = (*activeIte)->rx + 0.01f;
+        (*activeIte)->ry = (*activeIte)->ry + 0.01f;
 
         if ((*activeIte)->x > (m_glCtx->getWidth() / 2)) {
             m_deadParticles.push_back(*activeIte);

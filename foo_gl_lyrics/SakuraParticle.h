@@ -11,7 +11,8 @@ typedef struct
 {
     bool active;
     float life;
-    float fade;
+    float org_x;//store the original value of x
+    float angle;
     
     //color
     float r;
@@ -28,8 +29,12 @@ typedef struct
 
     //speed
     float xi;
-    float yi;
     float zi;
+
+    //rotate speed
+    float rx;
+    float ry; 
+    
 } PARTICLES;
 
 //sakura particle system
